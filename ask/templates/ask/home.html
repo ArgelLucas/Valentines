@@ -1,0 +1,74 @@
+{#ask/templates/ask/home.html#}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Will you be my Valentine?</title>
+
+  <link rel="stylesheet" href="{% static 'ask/css/style.css' %}">
+</head>
+<body class="minecraft">
+  <canvas id="bg" aria-hidden="true"></canvas>
+
+  <!-- Optional HUD -->
+  <div class="hud" aria-hidden="true">
+    <div class="hud-row">
+      <span class="hud-label">Health</span>
+      <span class="hud-hearts">■■■■■■■■■■</span>
+    </div>
+    <div class="hud-row">
+      <span class="hud-label">Status</span>
+      <span class="hud-text" id="hudText">Peaceful</span>
+    </div>
+  </div>
+
+  <main class="stage">
+    <section class="card" id="card" role="dialog" aria-label="Valentine question">
+      <div class="pill">⛏️ Crafting: Valentine Request</div>
+
+      <h1 class="title">Will you be my Valentine?</h1>
+      <p class="subtitle">Creative mode only. No fall damage. Just vibes.</p>
+
+      <div class="actions" id="actions">
+        <!-- IMPORTANT: data-yes-url tells JS where to redirect -->
+        <button class="btn btn-yes" id="yesBtn" type="button" data-yes-url="{% url 'yes' %}">
+          YES
+        </button>
+
+        <button class="btn btn-no" id="noBtn" type="button">
+          NO
+          <span class="no-bubble" id="noBubble" aria-live="polite" aria-atomic="true"></span>
+        </button>
+      </div>
+
+      <p class="hint" id="hint">Tip: try to hit “NO”… if you can.</p>
+    </section>
+
+    <!-- Success overlay (optional – will show briefly then redirect) -->
+    <section class="success" id="success" aria-live="polite" aria-hidden="true">
+      <div class="success-card">
+        <div class="achievement" aria-hidden="true">
+          <div class="ach-icon">■</div>
+          <div class="ach-text">
+            <div class="ach-title">Achievement Get!</div>
+            <div class="ach-sub">Valentine Acquired</div>
+          </div>
+        </div>
+
+        <h2>YAAAY!!</h2>
+        <p>Opening the book...</p>
+        <button class="btn btn-yes" id="againBtn" type="button">Replay</button>
+      </div>
+    </section>
+
+    <!-- Minecraft chat (appears when NO is pressed) -->
+    <section class="mc-chat" id="mcChat" aria-live="polite" aria-atomic="false">
+      <div class="mc-chat-lines" id="mcChatLines"></div>
+    </section>
+  </main>
+
+  <script src="{% static 'ask/js/app.js' %}"></script>
+</body>
+</html>

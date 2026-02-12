@@ -1,0 +1,52 @@
+{#ask/templates/ask/no.html#}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Will you be my Valentine?</title>
+
+  <link rel="stylesheet" href="{% static 'ask/css/style.css' %}">
+</head>
+<body>
+  <canvas id="bg" aria-hidden="true"></canvas>
+
+  <main class="stage">
+    <section class="card" id="card" role="dialog" aria-label="Valentine question">
+      <div class="pill">💌 Valentine Request</div>
+
+      <h1 class="title">Will you be my Valentine? <span aria-hidden="true">❤️</span></h1>
+      <p class="subtitle">A tiny question with big feelings. No pressure… okay, maybe a little 😇</p>
+
+      <div class="actions" id="actions">
+        <button class="btn btn-yes" id="yesBtn" type="button">
+          Yes <span class="emoji" aria-hidden="true">💘</span>
+        </button>
+
+        <!-- NO button now contains its own speech bubble -->
+        <button class="btn btn-no" id="noBtn" type="button">
+          No <span class="emoji" aria-hidden="true">🙃</span>
+
+          <!-- Speech bubble (JS fills text + animates) -->
+          <span class="no-bubble" id="noBubble" aria-live="polite" aria-atomic="true"></span>
+        </button>
+      </div>
+
+      <p class="hint" id="hint">Tip: try to tap “No” on a phone 😈</p>
+    </section>
+
+    <!-- Success overlay -->
+    <section class="success" id="success" aria-live="polite" aria-hidden="true">
+      <div class="success-card">
+        <div class="success-heart" aria-hidden="true">💗</div>
+        <h2>YAY!!</h2>
+        <p>You just made my whole day 🥰</p>
+        <button class="btn btn-yes" id="againBtn" type="button">Replay 💞</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="{% static 'ask/js/app.js' %}"></script>
+</body>
+</html>
