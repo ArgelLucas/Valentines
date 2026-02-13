@@ -126,7 +126,7 @@
     modal.innerHTML = `
       <div class="meal-overlay" aria-hidden="true"></div>
 
-      <div class="meal-box" role="dialog" aria-label="Plan our meal date">
+      <div class="meal-box mc-ui" role="dialog" aria-label="Plan our meal date">
         <div class="meal-head">
           <div class="meal-badge">Meal Quest</div>
           <h2 class="meal-title">Choose our meal date</h2>
@@ -154,6 +154,7 @@
     `;
 
     document.body.appendChild(modal);
+    document.body.classList.add("meal-lock");
     injectStyles();
 
     modal.querySelector(".meal-overlay").addEventListener("click", () => modal.remove());
@@ -778,379 +779,412 @@
   // 7) STYLES
   // -----------------------------
   function injectStyles() {
-    if (document.getElementById("mealQuestStyles")) return;
+  if (document.getElementById("mealQuestStyles")) return;
 
-    const style = document.createElement("style");
-    style.id = "mealQuestStyles";
-    style.textContent = `
-      #mealModal{
-        position: fixed;
-        inset: 0;
-        z-index: 2000;
-        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
-      }
+  const style = document.createElement("style");
+  style.id = "mealQuestStyles";
+  style.textContent = `
+    /* =========================
+       MODAL LAYER + SCROLL FIX
+       ========================= */
+    #mealModal{
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      /* allow overlay scrolling on small screens */
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 18px;
+      box-sizing: border-box;
+    }
 
-      .meal-overlay{
-        position: fixed;
-        inset: 0;
-        z-index: 2000;
-        background: rgba(0,0,0,0.62);
-        backdrop-filter: blur(5px);
-      }
+    .meal-overlay{
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      background: rgba(0,0,0,0.68);
+      image-rendering: pixelated;
+    }
 
-      .meal-box{
-        position: fixed;
-        z-index: 2001;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: min(820px, 94vw);
-        background: #fff;
-        border-radius: 22px;
-        overflow: hidden;
-        box-shadow: 0 20px 70px rgba(0,0,0,0.35);
-        animation: fadeIn .22s ease;
-      }
+    /* =========================
+       MINECRAFT UI THEME
+       ========================= */
+    .mc-ui{
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      image-rendering: pixelated;
+    }
 
-      .meal-head{
-        padding: 18px 20px 14px;
-        background: linear-gradient(135deg, rgba(255,77,109,0.14), rgba(0,0,0,0.02));
-        border-bottom: 1px solid rgba(0,0,0,0.06);
-      }
+    /* A subtle "pixel grid" texture using gradients (no images needed) */
+    .mc-ui{
+      --mc-border-dark: #1f1f1f;
+      --mc-border-mid: #3a3a3a;
+      --mc-border-light: #bfbfbf;
+      --mc-panel: #d9d9d9;
+      --mc-panel-2: #cfcfcf;
+      --mc-accent: #3dbb4a;
+      --mc-accent-2: #2a8b35;
+      --mc-danger: #d64545;
+      --mc-text: #111;
+    }
 
-      .meal-badge{
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        font-weight: 900;
-        font-size: 12px;
-        letter-spacing: .18em;
-        text-transform: uppercase;
-        color: rgba(0,0,0,0.55);
-        margin-bottom: 8px;
-      }
+    .meal-box{
+      position: relative;
+      z-index: 2001;
 
-      /* FIX: title readability */
-      .meal-title{
-        margin: 0 0 6px;
-        font-size: 26px;
-        letter-spacing: .2px;
-        color: #111;
-        text-shadow: 0 1px 0 rgba(255,255,255,0.65);
-      }
-      .meal-subtitle{
-        margin: 0;
-        font-size: 13px;
-        color: rgba(0,0,0,0.70);
-      }
+      /* important: do NOT fixed center with transform, let it fit viewport */
+      margin: 18px auto;
+      width: min(920px, 96vw);
 
-      .meal-progress{
-        display:flex;
-        gap: 8px;
-        margin-top: 14px;
-      }
-      .meal-progress .dot{
-        width: 10px;
-        height: 10px;
-        border-radius: 999px;
-        background: rgba(0,0,0,0.12);
-      }
-      .meal-progress .dot.done{ background: rgba(255,77,109,0.35); }
-      .meal-progress .dot.active{ background: rgba(255,77,109,0.95); }
+      /* scrollable layout */
+      max-height: calc(100vh - 36px);
+      display: flex;
+      flex-direction: column;
 
-      .meal-body{
-        padding: 18px 20px 10px;
-      }
+      background: var(--mc-panel);
+      border-radius: 6px;
 
-      .step-title{
-        margin: 0 0 6px;
-        font-size: 18px;
-        color: #171717;
-      }
-      .step-sub{
-        margin: 0 0 14px;
-        font-size: 13px;
-        color: rgba(0,0,0,0.68);
-      }
+      /* chunky Minecraft-ish border */
+      border: 4px solid var(--mc-border-dark);
+      box-shadow:
+        0 0 0 2px var(--mc-border-mid),
+        0 0 0 4px var(--mc-border-light),
+        0 20px 70px rgba(0,0,0,0.45);
 
-      .meal-footer{
-        display:flex;
-        align-items:center;
-        gap: 10px;
-        padding: 12px 14px;
-        border-top: 1px solid rgba(0,0,0,0.06);
-        background: #fff;
-      }
+      overflow: hidden;
+      animation: mcPop .14s ease-out;
+    }
 
-      .meal-summary{
-        flex: 1;
-        min-height: 34px;
-        display:flex;
-        align-items:center;
-        gap: 6px;
-        flex-wrap: wrap;
-        padding: 4px 6px;
-      }
-      .pill{
-        display:inline-flex;
-        align-items:center;
-        border-radius: 999px;
-        padding: 6px 10px;
-        background: rgba(255,77,109,0.10);
-        border: 1px solid rgba(255,77,109,0.18);
-        font-weight: 800;
-        font-size: 12px;
-        color: rgba(0,0,0,0.78);
-      }
-      .hint{
-        color: rgba(0,0,0,0.55);
-        font-size: 12px;
-        font-weight: 700;
-      }
+    @keyframes mcPop{
+      from{ transform: translateY(6px); opacity: 0; }
+      to{ transform: translateY(0); opacity: 1; }
+    }
 
-      .meal-btn{
-        padding: 10px 14px;
-        border-radius: 999px;
-        border: 0;
-        cursor: pointer;
-        font-weight: 900;
-        letter-spacing: .2px;
-        transition: transform .12s ease, filter .15s ease;
-        user-select: none;
-      }
-      .meal-btn:active{ transform: translateY(1px); }
-      .meal-btn:disabled{ opacity: .5; cursor: not-allowed; }
+    .meal-head{
+      padding: 14px 16px 12px;
+      background:
+        linear-gradient(0deg, rgba(0,0,0,0.06), rgba(0,0,0,0.06)),
+        repeating-linear-gradient(
+          90deg,
+          rgba(0,0,0,0.04) 0,
+          rgba(0,0,0,0.04) 8px,
+          rgba(255,255,255,0.04) 8px,
+          rgba(255,255,255,0.04) 16px
+        ),
+        var(--mc-panel-2);
+      border-bottom: 4px solid var(--mc-border-dark);
+      box-shadow: inset 0 2px 0 rgba(255,255,255,0.35);
+    }
 
-      .meal-btn.primary{
-        background: #ff4d6d;
-        color: #fff;
-        box-shadow: 0 10px 25px rgba(255,77,109,0.28);
-      }
-      .meal-btn.ghost{
-        background: rgba(0,0,0,0.06);
-        color: rgba(0,0,0,0.78);
-      }
-      .meal-btn.inline{ margin-top: 10px; }
+    .meal-badge{
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 900;
+      font-size: 12px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: rgba(0,0,0,0.75);
+      margin-bottom: 6px;
+    }
 
-      .choice-grid{
-        display:grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 12px;
-      }
-      .choice-card{
-        border: 1px solid rgba(0,0,0,0.08);
-        background: #ffffff;
-        border-radius: 16px;
-        padding: 12px 12px;
-        cursor: pointer;
-        text-align:left;
-        transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
-      }
-      .choice-card:hover{
-        transform: translateY(-2px);
-        box-shadow: 0 12px 28px rgba(0,0,0,0.10);
-      }
-      .choice-card.active{
-        border-color: rgba(255,77,109,0.55);
-        box-shadow: 0 12px 30px rgba(255,77,109,0.16);
-      }
-      .choice-top{
-        display:flex;
-        align-items:center;
-        gap: 10px;
-        margin-bottom: 6px;
-      }
-      .choice-icon{
-        width: 18px;
-        height: 18px;
-        border-radius: 6px;
-        box-shadow: 0 6px 14px rgba(0,0,0,0.12);
-      }
-      .choice-emoji{
-        width: 26px;
-        height: 26px;
-        border-radius: 10px;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        background: rgba(255,77,109,0.10);
-        border: 1px solid rgba(255,77,109,0.18);
-        font-weight: 900;
-      }
-      .choice-name{
-        font-weight: 950;
-        color: #171717;
-      }
-      .choice-meta{
-        font-size: 12px;
-        color: rgba(0,0,0,0.62);
-        font-weight: 800;
-      }
+    .meal-title{
+      margin: 0 0 4px;
+      font-size: 22px;
+      color: var(--mc-text);
+      font-weight: 1000;
+      text-shadow: 0 2px 0 rgba(255,255,255,0.35);
+    }
 
-      .search-wrap{ margin-bottom: 12px; }
-      .meal-input{
-        width: 100%;
-        border: 1px solid rgba(0,0,0,0.10);
-        border-radius: 14px;
-        padding: 10px 12px;
-        outline: none;
-        font-weight: 800;
-      }
-      .meal-input:focus{
-        border-color: rgba(255,77,109,0.55);
-        box-shadow: 0 0 0 4px rgba(255,77,109,0.12);
-      }
+    .meal-subtitle{
+      margin: 0;
+      font-size: 12px;
+      font-weight: 800;
+      color: rgba(0,0,0,0.75);
+    }
 
-      .food-grid{
-        display:grid;
-        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-        gap: 12px;
-      }
+    .meal-progress{
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .meal-progress .dot{
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      background: rgba(0,0,0,0.18);
+      box-shadow: inset 0 2px 0 rgba(255,255,255,0.25);
+    }
+    .meal-progress .dot.done{
+      background: rgba(61,187,74,0.55);
+    }
+    .meal-progress .dot.active{
+      background: rgba(61,187,74,0.95);
+    }
 
-      .food-card{
-        border: 1px solid rgba(0,0,0,0.08);
-        background: #fff;
-        border-radius: 16px;
-        padding: 10px;
-        cursor: pointer;
-        text-align:left;
-        transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
-      }
-      .food-card:hover{
-        transform: translateY(-2px);
-        box-shadow: 0 12px 28px rgba(0,0,0,0.10);
-      }
-      .food-card.active{
-        border-color: rgba(255,77,109,0.55);
-        box-shadow: 0 12px 30px rgba(255,77,109,0.16);
-      }
-      .food-card img{
-        width: 100%;
-        height: 130px;
-        object-fit: cover;
-        border-radius: 12px;
-        display:block;
-      }
-      .food-name{
-        margin-top: 8px;
-        font-weight: 950;
-        color: #222;
-        font-size: 13px;
-      }
+    /* =========================
+       SCROLLABLE CONTENT AREA
+       ========================= */
+    .meal-body{
+      padding: 14px 16px 10px;
+      overflow: auto;                /* <--- THIS IS THE BIG FIX */
+      -webkit-overflow-scrolling: touch;
+      flex: 1;                       /* <--- allow it to take remaining height */
+      background:
+        radial-gradient(rgba(255,255,255,0.24) 1px, transparent 1px) 0 0/12px 12px,
+        #e7e7e7;
+    }
 
-      .empty{
-        grid-column: 1 / -1;
-        padding: 14px;
-        border-radius: 14px;
-        background: rgba(0,0,0,0.04);
-        font-weight: 800;
-        color: rgba(0,0,0,0.65);
-      }
+    /* Footer stays pinned while body scrolls */
+    .meal-footer{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-top: 4px solid var(--mc-border-dark);
+      background: var(--mc-panel-2);
+    }
 
-      .stars-wrap{
-        display:flex;
-        flex-direction: column;
-        align-items:center;
-        gap: 6px;
-        padding: 10px 0 0;
-      }
-      .stars{
-        display:flex;
-        gap: 8px;
-      }
-      .star-btn{
-        border: 0;
-        background: transparent;
-        cursor: pointer;
-        font-size: 30px;
-        line-height: 1;
-        font-weight: 900;
-        color: rgba(255,77,109,0.95);
-        text-shadow: 0 10px 18px rgba(255,77,109,0.18);
-      }
-      .stars-label{
-        font-weight: 900;
-        color: rgba(0,0,0,0.72);
-      }
+    .meal-summary{
+      flex: 1;
+      min-height: 34px;
+      display:flex;
+      align-items:center;
+      gap: 6px;
+      flex-wrap: wrap;
+      padding: 4px 6px;
+    }
 
-      .confirm-card{
-        border: 1px solid rgba(0,0,0,0.08);
-        border-radius: 16px;
-        padding: 12px;
-        background: rgba(255,77,109,0.06);
-      }
-      .confirm-row{
-        display:flex;
-        justify-content: space-between;
-        gap: 10px;
-        padding: 8px 6px;
-        border-bottom: 1px dashed rgba(0,0,0,0.10);
-      }
-      .confirm-row:last-child{ border-bottom: 0; }
-      .confirm-row span{
-        font-weight: 900;
-        color: rgba(0,0,0,0.62);
-      }
-      .confirm-row strong{
-        font-weight: 950;
-        color: rgba(0,0,0,0.84);
-      }
-      .tiny-note{
-        margin-top: 12px;
-        font-size: 12px;
-        font-weight: 800;
-        color: rgba(0,0,0,0.58);
-      }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      border-radius: 4px;
+      padding: 6px 10px;
+      background: rgba(0,0,0,0.06);
+      border: 2px solid rgba(0,0,0,0.15);
+      font-weight: 900;
+      font-size: 12px;
+      color: rgba(0,0,0,0.8);
+    }
 
-      .final-wrap{
-        padding: 10px 6px 4px;
-        text-align:center;
-      }
-      .final-title{
-        font-size: 22px;
-        font-weight: 1000;
-        margin-bottom: 8px;
-        color: #111;
-      }
-      .final-line{
-        font-weight: 900;
-        color: rgba(0,0,0,0.75);
-        margin: 6px 0;
-      }
-      .final-stars{
-        font-size: 30px;
-        font-weight: 1000;
-        margin: 12px 0 10px;
-        color: rgba(255,77,109,0.95);
-        text-shadow: 0 12px 24px rgba(255,77,109,0.18);
-      }
-      .final-btn{ margin: 8px auto 0; display:inline-flex; }
+    .hint{
+      color: rgba(0,0,0,0.7);
+      font-size: 12px;
+      font-weight: 900;
+    }
 
-      .pop-star{
-        position:absolute;
-        z-index: 2002;
-        color: rgba(255,255,255,0.95);
-        text-shadow: 0 12px 24px rgba(0,0,0,0.35);
-        animation: popStar 900ms ease forwards;
-        pointer-events:none;
-        font-size: 18px;
-      }
+    /* =========================
+       Minecraft Buttons
+       ========================= */
+    .meal-btn{
+      padding: 10px 12px;
+      border-radius: 4px;
+      border: 3px solid var(--mc-border-dark);
+      cursor: pointer;
+      font-weight: 1000;
+      letter-spacing: .2px;
+      user-select: none;
+      box-shadow: inset 0 2px 0 rgba(255,255,255,0.25);
+      transition: transform .06s ease, filter .12s ease;
+    }
+    .meal-btn:active{ transform: translateY(1px); }
+    .meal-btn:disabled{ opacity: .55; cursor: not-allowed; }
 
-      .hidden{ display:none !important; }
+    .meal-btn.primary{
+      background: linear-gradient(#4ad35a, #2a8b35);
+      color: #0b1a0e;
+    }
 
-      @keyframes fadeIn{
-        from{ opacity:0; transform: translate(-50%, -48%); }
-        to{ opacity:1; transform: translate(-50%, -50%); }
-      }
+    .meal-btn.ghost{
+      background: linear-gradient(#f2f2f2, #cfcfcf);
+      color: #111;
+    }
 
-      @keyframes popStar{
-        0%{ opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
-        20%{ opacity: 1; }
-        100%{ opacity: 0; transform: translate(-50%, -120%) scale(1.4); }
-      }
-    `;
-    document.head.appendChild(style);
-  }
+    .meal-btn.danger{
+      background: linear-gradient(#ff6b6b, #c0392b);
+      color: #1a0707;
+    }
+
+    /* =========================
+       Cards / Grid (pixel-ish)
+       ========================= */
+    .choice-grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .choice-card{
+      border: 3px solid var(--mc-border-dark);
+      background: linear-gradient(#f7f7f7, #dcdcdc);
+      border-radius: 6px;
+      padding: 10px;
+      cursor: pointer;
+      text-align:left;
+      box-shadow: inset 0 2px 0 rgba(255,255,255,0.22);
+      transition: transform .1s ease, filter .12s ease;
+    }
+    .choice-card:hover{ filter: brightness(1.03); }
+    .choice-card:active{ transform: translateY(1px); }
+    .choice-card.active{
+      outline: 3px solid rgba(61,187,74,0.8);
+      outline-offset: 2px;
+    }
+
+    .choice-top{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .choice-icon{
+      width: 16px;
+      height: 16px;
+      border-radius: 2px;
+      border: 2px solid rgba(0,0,0,0.35);
+      box-shadow: inset 0 2px 0 rgba(255,255,255,0.2);
+    }
+
+    .choice-emoji{
+      width: 26px;
+      height: 26px;
+      border-radius: 4px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: rgba(0,0,0,0.06);
+      border: 2px solid rgba(0,0,0,0.2);
+      font-weight: 1000;
+    }
+
+    .choice-name{
+      font-weight: 1000;
+      color: #111;
+    }
+    .choice-meta{
+      font-size: 12px;
+      color: rgba(0,0,0,0.75);
+      font-weight: 900;
+    }
+
+    .search-wrap{ margin-bottom: 10px; }
+    .meal-input{
+      width: 100%;
+      border: 3px solid var(--mc-border-dark);
+      border-radius: 6px;
+      padding: 10px 10px;
+      outline: none;
+      font-weight: 900;
+      background: #f4f4f4;
+    }
+    .meal-input:focus{
+      box-shadow: 0 0 0 3px rgba(61,187,74,0.22);
+    }
+
+    .food-grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+    }
+
+    .food-card{
+      border: 3px solid var(--mc-border-dark);
+      background: linear-gradient(#f7f7f7, #dcdcdc);
+      border-radius: 6px;
+      padding: 10px;
+      cursor: pointer;
+      text-align:left;
+      box-shadow: inset 0 2px 0 rgba(255,255,255,0.22);
+      transition: transform .1s ease, filter .12s ease;
+    }
+    .food-card:hover{ filter: brightness(1.03); }
+    .food-card:active{ transform: translateY(1px); }
+    .food-card.active{
+      outline: 3px solid rgba(61,187,74,0.8);
+      outline-offset: 2px;
+    }
+
+    .food-card img{
+      width: 100%;
+      height: 130px;
+      object-fit: cover;
+      border-radius: 4px;
+      display:block;
+      border: 2px solid rgba(0,0,0,0.25);
+      image-rendering: pixelated;
+      background: #fff;
+    }
+
+    .food-name{
+      margin-top: 8px;
+      font-weight: 1000;
+      color: #111;
+      font-size: 13px;
+    }
+
+    .empty{
+      grid-column: 1 / -1;
+      padding: 12px;
+      border-radius: 6px;
+      border: 3px dashed rgba(0,0,0,0.35);
+      background: rgba(255,255,255,0.55);
+      font-weight: 900;
+      color: rgba(0,0,0,0.8);
+    }
+
+    /* Stars */
+    .stars-wrap{
+      display:flex;
+      flex-direction: column;
+      align-items:center;
+      gap: 6px;
+      padding: 8px 0 0;
+    }
+    .stars{
+      display:flex;
+      gap: 8px;
+    }
+    .star-btn{
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      font-size: 30px;
+      line-height: 1;
+      font-weight: 1000;
+      color: rgba(255, 215, 0, 0.95);
+      text-shadow: 0 3px 0 rgba(0,0,0,0.25);
+    }
+    .stars-label{
+      font-weight: 1000;
+      color: rgba(0,0,0,0.78);
+    }
+
+    /* star pop effect */
+    .pop-star{
+      position:absolute;
+      z-index: 2002;
+      color: rgba(255,255,255,0.95);
+      text-shadow: 0 4px 0 rgba(0,0,0,0.3);
+      animation: popStar 900ms ease forwards;
+      pointer-events:none;
+      font-size: 18px;
+    }
+    @keyframes popStar{
+      0%{ opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+      20%{ opacity: 1; }
+      100%{ opacity: 0; transform: translate(-50%, -120%) scale(1.4); }
+    }
+
+    .hidden{ display:none !important; }
+
+    /* Make sure page behind doesn't scroll while modal open */
+    body.meal-lock{
+      overflow: hidden !important;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 
   // -----------------------------
   // 8) HELPERS
