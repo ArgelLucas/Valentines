@@ -10,15 +10,9 @@
 
   <style>
     /* ============================================================
-       BOOK & QUILL (Minecraft-ish UI) — readable + more accurate
-       - Dark ink text (no white inheritance)
-       - Sharper “pixel-ish” edges
-       - Stronger parchment texture + vignette
-       - MC-style buttons
-       Keeps your existing background canvas + app.js
+       BOOK & QUILL (Minecraft-ish UI) — 3 pages story + typing
        ============================================================ */
 
-    /* Keep your existing animated background canvas; style only the book content */
     .alt-page .stage{
       min-height: 100vh;
       display:flex;
@@ -35,7 +29,6 @@
       filter: drop-shadow(0 18px 30px rgba(0,0,0,.35));
     }
 
-    /* Outer book frame (sharper, more “UI” than rounded) */
     .mc-book{
       width: 100%;
       aspect-ratio: 16 / 9;
@@ -53,7 +46,6 @@
       image-rendering: pixelated;
     }
 
-    /* Inner “bezel” like Minecraft GUIs */
     .mc-book::before{
       content:"";
       position:absolute;
@@ -65,7 +57,6 @@
       opacity:.9;
     }
 
-    /* Pages layout */
     .mc-pages{
       position:absolute;
       inset: 18px;
@@ -75,46 +66,31 @@
       z-index: 1;
     }
 
-    /* Parchment page: more texture + vignette */
     .mc-page{
       border-radius: 6px;
       border: 2px solid rgba(0,0,0,.28);
       background:
-        /* subtle fibers */
-        repeating-linear-gradient(
-          90deg,
-          rgba(0,0,0,.025) 0 1px,
-          transparent 1px 6px
-        ),
-        repeating-linear-gradient(
-          0deg,
-          rgba(0,0,0,.018) 0 1px,
-          transparent 1px 7px
-        ),
-        /* edge wear */
+        repeating-linear-gradient(90deg, rgba(0,0,0,.025) 0 1px, transparent 1px 6px),
+        repeating-linear-gradient(0deg, rgba(0,0,0,.018) 0 1px, transparent 1px 7px),
         radial-gradient(circle at 12px 12px, rgba(0,0,0,.08) 0 2px, transparent 3px),
         radial-gradient(circle at 22px 26px, rgba(0,0,0,.06) 0 2px, transparent 3px),
-        /* parchment base */
         linear-gradient(180deg, rgba(255,255,255,.70), rgba(255,255,255,.25)),
         linear-gradient(0deg, #f2dfb3, #f7edd6 40%, #f1dfb7);
       position: relative;
       overflow:hidden;
-      padding: 16px 16px 58px;
+      padding: 16px 16px 82px;
     }
 
-    /* Vignette for readability */
     .mc-page::after{
       content:"";
       position:absolute;
       inset:0;
-      background:
-        radial-gradient(circle at 50% 45%, transparent 55%, rgba(0,0,0,.10) 100%);
+      background: radial-gradient(circle at 50% 45%, transparent 55%, rgba(0,0,0,.10) 100%);
       pointer-events:none;
       mix-blend-mode: multiply;
       opacity:.55;
     }
 
-    /* The center binding (thicker + darker like the screenshot) */
     .mc-binding{
       position:absolute;
       top: 18px;
@@ -134,17 +110,15 @@
       pointer-events:none;
     }
 
-    /* Top row */
     .mc-page-top{
       display:flex;
       align-items:center;
       justify-content:space-between;
       margin-bottom: 10px;
       position: relative;
-      z-index: 2; /* above vignette */
+      z-index: 2;
       font-size: 12px;
       letter-spacing: .2px;
-      opacity: 1;
       color: rgba(0,0,0,.62);
     }
 
@@ -175,16 +149,21 @@
       display:flex;
       flex-direction:column;
       gap: 10px;
+      min-height: 0;
     }
 
     .mc-hint{
       font-size: 12px;
-      opacity: 1;
       margin: 0;
       color: rgba(0,0,0,.62);
     }
 
-    /* Textarea + preview: dark ink */
+    .mc-softline{
+      margin: 4px 0 0;
+      font-size: 12px;
+      color: rgba(0,0,0,.62);
+    }
+
     .mc-textarea{
       flex: 1;
       width: 100%;
@@ -196,11 +175,7 @@
       color: rgba(0,0,0,.86);
       caret-color: rgba(0,0,0,.86);
       padding: 2px 2px;
-      text-shadow: none;
-    }
-
-    .mc-textarea::placeholder{
-      color: rgba(0,0,0,.45);
+      min-height: 0;
     }
 
     .mc-preview{
@@ -213,10 +188,9 @@
       padding: 10px 10px;
       font: 14px/1.55 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       color: rgba(0,0,0,.86);
-      text-shadow: none;
+      min-height: 0;
     }
 
-    /* Footer buttons (Minecraft-like: squared + thick border + inset highlight) */
     .mc-page-footer{
       position:absolute;
       left: 16px;
@@ -227,6 +201,7 @@
       justify-content:center;
       align-items:center;
       z-index: 2;
+      flex-wrap: wrap;
     }
 
     .mc-btn{
@@ -252,41 +227,29 @@
         inset 0 0 0 2px rgba(255,255,255,.18),
         0 3px 0 rgba(0,0,0,.18);
     }
-
     .mc-btn:hover{ filter: brightness(1.04); }
-    .mc-btn:active{
-      transform: translateY(1px);
-      box-shadow:
-        inset 0 0 0 2px rgba(255,255,255,.14),
-        0 2px 0 rgba(0,0,0,.18);
-    }
+    .mc-btn:active{ transform: translateY(1px); }
 
     .mc-btn.primary{
       background:
         linear-gradient(180deg, rgba(255,255,255,.60), rgba(0,0,0,.12)),
         rgba(120, 190, 120, .36);
     }
-
     .mc-btn.secondary{
       background:
         linear-gradient(180deg, rgba(255,255,255,.58), rgba(0,0,0,.12)),
         rgba(255,255,255,.26);
     }
 
-    /* Force ALL book text to be dark (prevents inheriting white from body theme) */
-    .mc-book,
-    .mc-page,
-    .mc-page *{
-      color: rgba(0,0,0,.82);
-      text-shadow: none;
-    }
+    .mc-book, .mc-page, .mc-page *{ color: rgba(0,0,0,.82); text-shadow:none; }
 
-    /* Mobile: stack pages like MC does in narrow view */
     @media (max-width: 720px){
       .mc-book{ aspect-ratio: 10 / 12; }
       .mc-pages{ grid-template-columns: 1fr; }
       .mc-binding{ display:none; }
     }
+
+    /* Quest toast */
     .quest-toast{
       position: fixed;
       left: 50%;
@@ -312,21 +275,22 @@
       transform: translateX(-50%) translateY(2px);
     }
 
-    /* ---------- Tiny helper line on page 2 ---------- */
-    .mc-softline{
-      margin: 8px 0 0;
-      font-size: 12px;
-      color: rgba(0,0,0,.62);
+    /* typing cursor */
+    .cursor{
+      display:inline-block;
+      width: 10px;
+      animation: blink 1s steps(1) infinite;
+      opacity: .8;
     }
+    @keyframes blink { 50% { opacity: 0; } }
   </style>
 </head>
 
 <body class="alt-page">
   <canvas id="bg" aria-hidden="true"></canvas>
 
-  <!-- Quest toast (hidden until sign) -->
   <div class="quest-toast" id="questToast" aria-live="polite">
-    Quest Updated: Choose our meal date 💗
+    Quest Updated 💗
   </div>
 
   <main class="stage">
@@ -336,56 +300,59 @@
 
         <div class="mc-pages">
           <!-- Left Page -->
-          <div class="mc-page" aria-label="Page 1">
+          <div class="mc-page" aria-label="Story Page">
             <div class="mc-page-top">
-              <div class="mc-page-title">Page 1 of 2</div>
+              <div class="mc-page-title" id="pageTitleLeft">Page 1 of 3</div>
               <div class="mc-page-close" aria-hidden="true">×</div>
             </div>
 
             <div class="mc-lines">
-              <p class="mc-hint">Write your letter:</p>
-              <textarea
-                id="letterInput"
-                class="mc-textarea"
-                spellcheck="false"
-                placeholder="Dear Valentine,
+              <p class="mc-hint" id="pageHint">Story:</p>
 
-"
-              ></textarea>
+              <!-- Read-only story page (typing here) -->
+              <div id="storyBox" class="mc-preview" aria-live="polite"></div>
+
+              <p class="mc-softline" id="pagePrompt">
+                (You can press Skip if you don’t want to wait.)
+              </p>
             </div>
 
             <div class="mc-page-footer">
-              <button class="mc-btn primary" id="signBtn" type="button">Sign</button>
+              <button class="mc-btn secondary" id="prevBtn" type="button" disabled>Prev</button>
+              <button class="mc-btn secondary" id="skipBtn" type="button">Skip</button>
+              <button class="mc-btn primary" id="nextBtn" type="button">Next</button>
               <a class="mc-btn secondary" href="{% url 'home' %}">Back</a>
             </div>
           </div>
 
-          <!-- Right Page -->
-          <div class="mc-page" aria-label="Page 2">
+          <!-- Right Page: Preview of full letter -->
+          <div class="mc-page" aria-label="Full Preview Page">
             <div class="mc-page-top">
-              <div class="mc-page-title">Page 2 of 2</div>
+              <div class="mc-page-title">Full Letter</div>
               <div class="mc-page-close" aria-hidden="true">×</div>
             </div>
 
             <div class="mc-lines">
               <p class="mc-hint">Preview:</p>
-              <div id="letterPreview" class="mc-preview" aria-live="polite"></div>
-              <p class="mc-softline" id="afterSignLine" style="display:none;">
-                Now pick our meal so I can officially plan our date. ✨
+              <div id="letterPreview" class="mc-preview"></div>
+
+              <p class="mc-softline" id="dateLine">
+                📅 Date idea: <strong>Saturday, 6:00 PM</strong> — you choose the food, I’ll choose you. 💗
+              </p>
+
+              <p class="mc-softline" id="unlockLine" style="display:none;">
+                ✅ Page 4 unlocked: Meal Date 💕
               </p>
             </div>
 
             <div class="mc-page-footer">
-              <button class="mc-btn secondary" id="clearBtn" type="button">Clear</button>
-              <!-- NEW: meal button -->
-              <button class="mc-btn primary" id="openMealBtn" type="button" style="display:none;">
-                Choose Meal
-              </button>
-              <a class="mc-btn secondary" href="{% url 'home' %}">Back</a>
+              <button class="mc-btn primary" id="signBtn" type="button" style="display:none;">Sign</button>
+              <button class="mc-btn primary" id="openMealBtn" type="button" style="display:none;">Choose Meal</button>
+              <button class="mc-btn secondary" id="restartBtn" type="button">Restart Story</button>
             </div>
           </div>
-        </div>
 
+        </div>
       </div>
     </section>
   </main>
@@ -395,58 +362,234 @@
 
   <script>
     (function(){
-      const input = document.getElementById("letterInput");
-      const preview = document.getElementById("letterPreview");
+      const storyBox = document.getElementById("storyBox");
+      const letterPreview = document.getElementById("letterPreview");
+
+      const prevBtn = document.getElementById("prevBtn");
+      const nextBtn = document.getElementById("nextBtn");
+      const skipBtn = document.getElementById("skipBtn");
+
       const signBtn = document.getElementById("signBtn");
-      const clearBtn = document.getElementById("clearBtn");
-
       const openMealBtn = document.getElementById("openMealBtn");
-      const afterSignLine = document.getElementById("afterSignLine");
-      const questToast = document.getElementById("questToast");
+      const restartBtn = document.getElementById("restartBtn");
 
-      const render = () => { preview.textContent = input.value || ""; };
-      input.addEventListener("input", render);
-      render();
+      const pageTitleLeft = document.getElementById("pageTitleLeft");
+      const pageHint = document.getElementById("pageHint");
+      const pagePrompt = document.getElementById("pagePrompt");
+      const toast = document.getElementById("questToast");
+      const unlockLine = document.getElementById("unlockLine");
+
+      let page = 1;
+      let typingTimer = null;
+      let typingIndex = 0;
+      let isTyping = false;
+
+      // ✅ Customize story here (you can edit names/lines)
+      const storyPages = {
+        1: [
+          "Dear Valentine,",
+          "",
+          "I don’t know how to say this without sounding cheesy…",
+          "but somehow you made my ordinary days feel lighter.",
+          "",
+          "It’s like the world got a little brighter",
+          "the moment you became part of it."
+        ].join("\n"),
+        2: [
+          "There’s this thing you do—",
+          "the way you talk, the way you smile,",
+          "the way you’re just… you.",
+          "",
+          "It makes me want to be gentle with your heart,",
+          "and brave with mine."
+        ].join("\n"),
+        3: [
+          "So here’s the quest:",
+          "",
+          "Will you be my Valentine?",
+          "",
+          "If yes… then you get to pick our meal,",
+          "and I get the best reward:",
+          "time with you.",
+          "",
+          "— Yours"
+        ].join("\n")
+      };
+
+      const hints = {
+        1: "Story: (Meet-cute vibes)",
+        2: "Story: (Compliments)",
+        3: "Story: (The Ask)"
+      };
 
       function showToast(msg){
-        if (msg) questToast.textContent = msg;
-        questToast.classList.add("show");
-        window.setTimeout(() => questToast.classList.remove("show"), 1800);
+        toast.textContent = msg;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 1900);
       }
 
+      function buildFullLetter(){
+        return [
+          storyPages[1],
+          "",
+          storyPages[2],
+          "",
+          storyPages[3]
+        ].join("\n").trim();
+      }
+
+      function renderFullPreview(){
+        letterPreview.textContent = buildFullLetter();
+      }
+
+      function stopTyping(){
+        if (typingTimer) clearTimeout(typingTimer);
+        typingTimer = null;
+        isTyping = false;
+      }
+
+      function setStoryInstant(text){
+        stopTyping();
+        storyBox.textContent = text;
+        renderFullPreview();
+        updateButtons();
+      }
+
+      function typeStory(text){
+        stopTyping();
+        typingIndex = 0;
+        isTyping = true;
+        storyBox.textContent = "";
+        updateButtons();
+
+        const speed = 18; // typing speed ms per char
+        const cursor = "▌";
+
+        const tick = () => {
+          if (!isTyping) return;
+
+          typingIndex++;
+          const slice = text.slice(0, typingIndex);
+          storyBox.textContent = slice + cursor;
+
+          if (typingIndex >= text.length) {
+            isTyping = false;
+            storyBox.textContent = text; // remove cursor at end
+            renderFullPreview();
+            updateButtons();
+
+            // On page 3 finished typing, show Sign
+            if (page === 3) {
+              signBtn.style.display = "inline-flex";
+              showToast("Final page… sign it 💗");
+            }
+            return;
+          }
+
+          // natural pauses on punctuation / line breaks
+          const last = text.charAt(typingIndex - 1);
+          const pause =
+            last === "\n" ? 220 :
+            [".","!","?"].includes(last) ? 260 :
+            [",",":",";"].includes(last) ? 120 :
+            speed;
+
+          typingTimer = setTimeout(tick, pause);
+        };
+
+        tick();
+      }
+
+      function updateButtons(){
+        prevBtn.disabled = page === 1 || isTyping;
+        nextBtn.disabled = isTyping;   // don't advance mid-typing
+        skipBtn.disabled = !isTyping;  // only clickable while typing
+
+        pageTitleLeft.textContent = `Page ${page} of 3`;
+        pageHint.textContent = hints[page];
+
+        nextBtn.textContent = (page === 3) ? "Next (Page 4)" : "Next";
+      }
+
+      function loadPage(p){
+        stopTyping();
+        page = p;
+
+        // hide actions until conditions met
+        unlockLine.style.display = "none";
+        openMealBtn.style.display = "none";
+
+        // Only show sign button on page 3 after typing finishes
+        signBtn.style.display = "none";
+        signBtn.disabled = false;
+        signBtn.textContent = "Sign";
+        signBtn.style.opacity = "1";
+
+        const text = storyPages[page];
+        pagePrompt.textContent = "(Press Skip if you don’t want to wait.)";
+
+        // start typing automatically
+        typeStory(text);
+        renderFullPreview();
+        updateButtons();
+      }
+
+      // Buttons
+      prevBtn.addEventListener("click", () => {
+        if (page > 1) loadPage(page - 1);
+      });
+
+      nextBtn.addEventListener("click", () => {
+        if (isTyping) return;
+
+        if (page < 3) {
+          loadPage(page + 1);
+          return;
+        }
+
+        // "Page 4" behavior: requires signed
+        if (!signBtn.disabled) {
+          showToast("Sign it first so it’s official 💗");
+          return;
+        }
+
+        unlockLine.style.display = "block";
+        showToast("Page 4 unlocked: Meal Date 💕");
+
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent("openMealQuest"));
+        }, 450);
+      });
+
+      skipBtn.addEventListener("click", () => {
+        setStoryInstant(storyPages[page]);
+      });
+
       signBtn.addEventListener("click", () => {
-        input.blur();
-        signBtn.textContent = "Signed";
+        signBtn.textContent = "Signed ✓";
         signBtn.disabled = true;
         signBtn.style.opacity = "0.85";
-
-        // Reveal meal step
         openMealBtn.style.display = "inline-flex";
-        afterSignLine.style.display = "block";
+        showToast("Quest Updated: Choose our meal 💗");
 
-        // Quest toast + auto-open meal modal
-        showToast("Quest Updated: Choose our meal date 💗");
-        window.setTimeout(() => {
-          // meal.js will listen to this (see tiny hook below)
+        // open reward shortly after signing
+        setTimeout(() => {
           window.dispatchEvent(new CustomEvent("openMealQuest"));
         }, 650);
       });
 
-      clearBtn.addEventListener("click", () => {
-        input.value = "";
-        render();
-        signBtn.disabled = false;
-        signBtn.textContent = "Sign";
-        openMealBtn.style.display = "none";
-        afterSignLine.style.display = "none";
-        input.focus();
+      openMealBtn.addEventListener("click", () => {
+        window.dispatchEvent(new CustomEvent("openMealQuest"));
       });
+
+      restartBtn.addEventListener("click", () => {
+        loadPage(1);
+      });
+
+      // init
+      renderFullPreview();
+      loadPage(1);
     })();
   </script>
-  window.addEventListener("openMealQuest", () => {
-  // open immediately even if button isn’t clicked
-  openMealModal();
-});
 </body>
 </html>
-
