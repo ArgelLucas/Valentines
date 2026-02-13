@@ -167,7 +167,6 @@ body.alt-page{
 
 .actions{
   position: relative;
-  height: 70px;
   display:flex;
   justify-content:center;
   align-items:center;
@@ -201,9 +200,9 @@ body.alt-page{
 .btn-no{
   color: rgba(255,255,255,0.95);
   background: linear-gradient(180deg, var(--green), var(--green-2));
-  position:absolute;
-  left: 58%;
-  top: 0;
+  position: relative;   /* IMPORTANT: NOT absolute */
+  left: auto;           /* reset */
+  top: auto;            /* reset */
   overflow: visible;
 }
 

@@ -3,8 +3,8 @@
    MINECRAFT-THEMED VALENTINE LOGIC + MOB SPAWNS + CHAT
    - Background runs on ANY page that has #bg canvas
    - Home page: YES redirects to /yes (Book & Quill)
-   - NO starts beside YES (normal layout), then on first click
-     becomes fixed and smoothly moves around the whole screen
+   - NO starts beside YES (normal layout), then on first click:
+     -> leaves the card (ported to <body>) and smoothly moves around
    ============================================================ */
 
 (() => {
@@ -270,14 +270,8 @@
       m.life--;
 
       m.x += m.vx;
-      if (m.x < 18) {
-        m.x = 18;
-        m.vx *= -1;
-      }
-      if (m.x > W - 18) {
-        m.x = W - 18;
-        m.vx *= -1;
-      }
+      if (m.x < 18) { m.x = 18; m.vx *= -1; }
+      if (m.x > W - 18) { m.x = W - 18; m.vx *= -1; }
 
       if (m.frame % 120 === 0) m.vx = clamp(m.vx + rand(-0.25, 0.25), -0.6, 0.6);
 
@@ -329,25 +323,17 @@
   yesBtn?.addEventListener("click", () => {
     const yesUrl = yesBtn.dataset.yesUrl; // comes from home.html
     sparkleBurstFrom(yesBtn);
-
     showSuccess();
-
     setTimeout(() => {
       if (yesUrl) window.location.href = yesUrl;
     }, reduceMotion ? 0 : 550);
   });
 
-  againBtn?.addEventListener("click", () => {
-    hideSuccess();
-  });
-
-  success?.addEventListener("click", (e) => {
-    if (e.target === success) hideSuccess();
-  });
+  againBtn?.addEventListener("click", () => hideSuccess());
+  success?.addEventListener("click", (e) => { if (e.target === success) hideSuccess(); });
 
   // ============================================================
-  // NO: starts beside YES, then becomes fixed on first click
-  // and smoothly moves around the whole screen
+  // NO: starts beside YES, then becomes body-fixed and moves
   // ============================================================
   const creeperLines = [
     "tssss...",
@@ -380,7 +366,34 @@
 
   if (noBtn) {
     let attempts = 0;
-    let isActivated = false; // becomes true after first NO click
+    let isActivated = false;
+    let placeholder = null;
+
+    function activateNoButtonPortal() {
+      // capture current on-screen position while it's still in the flex layout
+      const rect = noBtn.getBoundingClientRect();
+
+      // create a placeholder so the layout doesn't shift (keeps "beside YES" look)
+      placeholder = document.createElement("span");
+      placeholder.style.display = "inline-block";
+      placeholder.style.width = `${rect.width}px`;
+      placeholder.style.height = `${rect.height}px`;
+      placeholder.style.verticalAlign = "middle";
+      noBtn.parentNode?.insertBefore(placeholder, noBtn);
+
+      // move the actual button to <body> so transforms on the card won't affect fixed positioning
+      document.body.appendChild(noBtn);
+
+      // now place it exactly where it was
+      noBtn.style.position = "fixed";
+      noBtn.style.zIndex = "9999";
+      noBtn.style.left = `${rect.left}px`;
+      noBtn.style.top = `${rect.top}px`;
+      noBtn.style.margin = "0";
+      noBtn.style.display = "inline-flex";
+      noBtn.style.willChange = "left, top, transform";
+      noBtn.style.pointerEvents = "auto";
+    }
 
     function moveNoAnywhere() {
       if (!isActivated) return;
@@ -393,11 +406,10 @@
       const maxX = window.innerWidth - noRect.width - pad;
       const minY = pad;
       const maxY = window.innerHeight - noRect.height - pad;
-
       if (maxX <= minX || maxY <= minY) return;
 
       let best = null;
-      for (let i = 0; i < 120; i++) {
+      for (let i = 0; i < 140; i++) {
         const left = minX + Math.random() * (maxX - minX);
         const top = minY + Math.random() * (maxY - minY);
 
@@ -409,11 +421,10 @@
       }
       if (!best) best = { left: minX, top: minY };
 
-      // Smooth-but-snappy timing
+      // smooth but quick
       const dur = clamp(220 - attempts * 6, 120, 220);
       const ease = "cubic-bezier(.22,.61,.36,1)";
 
-      noBtn.style.willChange = "left, top, transform";
       noBtn.style.transition = `left ${dur}ms ${ease}, top ${dur}ms ${ease}, transform 160ms ${ease}`;
       noBtn.style.left = `${best.left}px`;
       noBtn.style.top = `${best.top}px`;
@@ -424,21 +435,14 @@
       e.preventDefault();
       attempts++;
 
-      // On first click, "detach" from layout but keep same visual position
       if (!isActivated) {
-        const rect = noBtn.getBoundingClientRect();
-        noBtn.style.position = "fixed";
-        noBtn.style.zIndex = "9999";
-        noBtn.style.left = `${rect.left}px`;
-        noBtn.style.top = `${rect.top}px`;
-        noBtn.style.display = "inline-flex";
+        activateNoButtonPortal();
         isActivated = true;
       }
 
       let idx;
-      do {
-        idx = (Math.random() * creeperLines.length) | 0;
-      } while (idx === lastLine && creeperLines.length > 1);
+      do { idx = (Math.random() * creeperLines.length) | 0; }
+      while (idx === lastLine && creeperLines.length > 1);
       lastLine = idx;
 
       const line = creeperLines[idx];
@@ -465,7 +469,7 @@
       "resize",
       () => {
         if (!isActivated) return;
-        // keep it within bounds after resize
+        // keep it visible after resize
         setTimeout(() => moveNoAnywhere(), 60);
       },
       { passive: true }
