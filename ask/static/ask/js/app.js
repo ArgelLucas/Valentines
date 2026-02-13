@@ -3,7 +3,8 @@
    MINECRAFT-THEMED VALENTINE LOGIC + MOB SPAWNS + CHAT
    - Background runs on ANY page that has #bg canvas
    - Home page: YES redirects to /yes (Book & Quill)
-   - NO teleports anywhere on screen
+   - NO starts beside YES (normal layout), then on first click
+     becomes fixed and smoothly moves around the whole screen
    ============================================================ */
 
 (() => {
@@ -138,7 +139,8 @@
   function spawnItem(x = rand(0, W), y = rand(0, H), burst = false) {
     const s = burst ? rand(6, 12) : rand(4, 9);
     items.push({
-      x, y,
+      x,
+      y,
       vx: burst ? rand(-2.2, 2.2) : rand(-0.3, 0.3),
       vy: burst ? rand(-3.4, -1.4) : rand(-0.8, -0.3),
       size: s,
@@ -250,7 +252,13 @@
       const a = clamp(p.life / 40, 0, 1);
       ctx.globalAlpha = a;
       drawPixelRect(p.x, p.y, p.size, p.size, p.c);
-      drawPixelRect(p.x + p.size * 0.35, p.y - p.size * 0.35, p.size * 0.5, p.size * 0.5, "rgba(255,255,255,0.45)");
+      drawPixelRect(
+        p.x + p.size * 0.35,
+        p.y - p.size * 0.35,
+        p.size * 0.5,
+        p.size * 0.5,
+        "rgba(255,255,255,0.45)"
+      );
       ctx.globalAlpha = 1;
 
       if (p.life <= 0 || p.y < -40 || p.x < -60 || p.x > W + 60) items.splice(i, 1);
@@ -262,8 +270,14 @@
       m.life--;
 
       m.x += m.vx;
-      if (m.x < 18) { m.x = 18; m.vx *= -1; }
-      if (m.x > W - 18) { m.x = W - 18; m.vx *= -1; }
+      if (m.x < 18) {
+        m.x = 18;
+        m.vx *= -1;
+      }
+      if (m.x > W - 18) {
+        m.x = W - 18;
+        m.vx *= -1;
+      }
 
       if (m.frame % 120 === 0) m.vx = clamp(m.vx + rand(-0.25, 0.25), -0.6, 0.6);
 
@@ -316,10 +330,8 @@
     const yesUrl = yesBtn.dataset.yesUrl; // comes from home.html
     sparkleBurstFrom(yesBtn);
 
-    // show a quick overlay, then go to the book page
     showSuccess();
 
-    // small delay so you see the effect
     setTimeout(() => {
       if (yesUrl) window.location.href = yesUrl;
     }, reduceMotion ? 0 : 550);
@@ -334,7 +346,8 @@
   });
 
   // ============================================================
-  // NO: TELEPORT WHOLE SCREEN (home only)
+  // NO: starts beside YES, then becomes fixed on first click
+  // and smoothly moves around the whole screen
   // ============================================================
   const creeperLines = [
     "tssss...",
@@ -367,65 +380,65 @@
 
   if (noBtn) {
     let attempts = 0;
-
-    // Keep initial position so it doesn't "vanish", then switch to fixed
-    const startRect = noBtn.getBoundingClientRect();
-    noBtn.style.position = "fixed";
-    noBtn.style.zIndex = "9999";
-    noBtn.style.left = `${startRect.left}px`;
-    noBtn.style.top = `${startRect.top}px`;
-    noBtn.style.display = "inline-flex";
+    let isActivated = false; // becomes true after first NO click
 
     function moveNoAnywhere() {
-  const noRect = noBtn.getBoundingClientRect();
-  const yesRect = yesBtn?.getBoundingClientRect();
+      if (!isActivated) return;
 
-  const pad = 10;
-  const minX = pad;
-  const maxX = window.innerWidth - noRect.width - pad;
-  const minY = pad;
-  const maxY = window.innerHeight - noRect.height - pad;
+      const noRect = noBtn.getBoundingClientRect();
+      const yesRect = yesBtn?.getBoundingClientRect();
 
-  if (maxX <= minX || maxY <= minY) return;
+      const pad = 10;
+      const minX = pad;
+      const maxX = window.innerWidth - noRect.width - pad;
+      const minY = pad;
+      const maxY = window.innerHeight - noRect.height - pad;
 
-  let best = null;
-  for (let i = 0; i < 120; i++) {
-    const left = minX + Math.random() * (maxX - minX);
-    const top = minY + Math.random() * (maxY - minY);
+      if (maxX <= minX || maxY <= minY) return;
 
-    const candidate = { left, top, right: left + noRect.width, bottom: top + noRect.height };
-    if (yesRect && rectsOverlap(candidate, yesRect)) continue;
+      let best = null;
+      for (let i = 0; i < 120; i++) {
+        const left = minX + Math.random() * (maxX - minX);
+        const top = minY + Math.random() * (maxY - minY);
 
-    best = { left, top };
-    break;
-  }
-  if (!best) best = { left: minX, top: minY };
+        const candidate = { left, top, right: left + noRect.width, bottom: top + noRect.height };
+        if (yesRect && rectsOverlap(candidate, yesRect)) continue;
 
-  // Smooth-but-snappy timing (slightly longer over time, but capped)
-  const dur = clamp(180 - attempts * 5, 95, 180);
+        best = { left, top };
+        break;
+      }
+      if (!best) best = { left: minX, top: minY };
 
-  // Easing curve: smooth start, quick middle, smooth stop
-  const ease = "cubic-bezier(.22,.61,.36,1)"; // like "easeOutCubic"
+      // Smooth-but-snappy timing
+      const dur = clamp(220 - attempts * 6, 120, 220);
+      const ease = "cubic-bezier(.22,.61,.36,1)";
 
-  // IMPORTANT: remove steps() (that's what makes it teleport/choppy)
-  noBtn.style.willChange = "left, top, transform";
-  noBtn.style.transition = `left ${dur}ms ${ease}, top ${dur}ms ${ease}, transform 160ms ${ease}`;
-
-  noBtn.style.left = `${best.left}px`;
-  noBtn.style.top = `${best.top}px`;
-
-  // tiny playful rotation, but not too wild
-  noBtn.style.transform = `translate3d(0,0,0) rotate(${(Math.random() - 0.5) * 10}deg)`;
-}
-
+      noBtn.style.willChange = "left, top, transform";
+      noBtn.style.transition = `left ${dur}ms ${ease}, top ${dur}ms ${ease}, transform 160ms ${ease}`;
+      noBtn.style.left = `${best.left}px`;
+      noBtn.style.top = `${best.top}px`;
+      noBtn.style.transform = `translate3d(0,0,0) rotate(${(Math.random() - 0.5) * 10}deg)`;
+    }
 
     noBtn.addEventListener("click", (e) => {
       e.preventDefault();
       attempts++;
 
+      // On first click, "detach" from layout but keep same visual position
+      if (!isActivated) {
+        const rect = noBtn.getBoundingClientRect();
+        noBtn.style.position = "fixed";
+        noBtn.style.zIndex = "9999";
+        noBtn.style.left = `${rect.left}px`;
+        noBtn.style.top = `${rect.top}px`;
+        noBtn.style.display = "inline-flex";
+        isActivated = true;
+      }
+
       let idx;
-      do { idx = (Math.random() * creeperLines.length) | 0; }
-      while (idx === lastLine && creeperLines.length > 1);
+      do {
+        idx = (Math.random() * creeperLines.length) | 0;
+      } while (idx === lastLine && creeperLines.length > 1);
       lastLine = idx;
 
       const line = creeperLines[idx];
@@ -444,9 +457,18 @@
       if (!reduceMotion) for (let i = 0; i < 10; i++) spawnItem(x + rand(-12, 12), y + rand(-8, 8), true);
 
       beep(220 + attempts * 6, 55, "square", 0.02);
+
       moveNoAnywhere();
     });
 
-    window.addEventListener("resize", () => setTimeout(moveNoAnywhere, 50), { passive: true });
+    window.addEventListener(
+      "resize",
+      () => {
+        if (!isActivated) return;
+        // keep it within bounds after resize
+        setTimeout(() => moveNoAnywhere(), 60);
+      },
+      { passive: true }
+    );
   }
 })();
