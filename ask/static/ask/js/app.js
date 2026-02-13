@@ -377,37 +377,47 @@
     noBtn.style.display = "inline-flex";
 
     function moveNoAnywhere() {
-      const noRect = noBtn.getBoundingClientRect();
-      const yesRect = yesBtn?.getBoundingClientRect();
+  const noRect = noBtn.getBoundingClientRect();
+  const yesRect = yesBtn?.getBoundingClientRect();
 
-      const pad = 10;
-      const minX = pad;
-      const maxX = window.innerWidth - noRect.width - pad;
-      const minY = pad;
-      const maxY = window.innerHeight - noRect.height - pad;
+  const pad = 10;
+  const minX = pad;
+  const maxX = window.innerWidth - noRect.width - pad;
+  const minY = pad;
+  const maxY = window.innerHeight - noRect.height - pad;
 
-      if (maxX <= minX || maxY <= minY) return;
+  if (maxX <= minX || maxY <= minY) return;
 
-      let best = null;
-      for (let i = 0; i < 120; i++) {
-        const left = minX + Math.random() * (maxX - minX);
-        const top = minY + Math.random() * (maxY - minY);
+  let best = null;
+  for (let i = 0; i < 120; i++) {
+    const left = minX + Math.random() * (maxX - minX);
+    const top = minY + Math.random() * (maxY - minY);
 
-        const candidate = { left, top, right: left + noRect.width, bottom: top + noRect.height };
-        if (yesRect && rectsOverlap(candidate, yesRect)) continue;
+    const candidate = { left, top, right: left + noRect.width, bottom: top + noRect.height };
+    if (yesRect && rectsOverlap(candidate, yesRect)) continue;
 
-        best = { left, top };
-        break;
-      }
+    best = { left, top };
+    break;
+  }
+  if (!best) best = { left: minX, top: minY };
 
-      if (!best) best = { left: minX, top: minY };
+  // Smooth-but-snappy timing (slightly longer over time, but capped)
+  const dur = clamp(220 - attempts * 6, 120, 220);
 
-      const dur = Math.max(70, 140 - attempts * 4);
-      noBtn.style.transition = `left ${dur}ms steps(4,end), top ${dur}ms steps(4,end), transform 120ms ease`;
-      noBtn.style.left = `${best.left}px`;
-      noBtn.style.top = `${best.top}px`;
-      noBtn.style.transform = `rotate(${(Math.random() - 0.5) * 18}deg)`;
-    }
+  // Easing curve: smooth start, quick middle, smooth stop
+  const ease = "cubic-bezier(.22,.61,.36,1)"; // like "easeOutCubic"
+
+  // IMPORTANT: remove steps() (that's what makes it teleport/choppy)
+  noBtn.style.willChange = "left, top, transform";
+  noBtn.style.transition = `left ${dur}ms ${ease}, top ${dur}ms ${ease}, transform 160ms ${ease}`;
+
+  noBtn.style.left = `${best.left}px`;
+  noBtn.style.top = `${best.top}px`;
+
+  // tiny playful rotation, but not too wild
+  noBtn.style.transform = `translate3d(0,0,0) rotate(${(Math.random() - 0.5) * 10}deg)`;
+}
+
 
     noBtn.addEventListener("click", (e) => {
       e.preventDefault();
