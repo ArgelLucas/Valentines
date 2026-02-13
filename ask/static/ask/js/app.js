@@ -402,7 +402,7 @@
   if (!best) best = { left: minX, top: minY };
 
   // Smooth-but-snappy timing (slightly longer over time, but capped)
-  const dur = clamp(220 - attempts * 6, 120, 220);
+  const dur = clamp(180 - attempts * 5, 95, 180);
 
   // Easing curve: smooth start, quick middle, smooth stop
   const ease = "cubic-bezier(.22,.61,.36,1)"; // like "easeOutCubic"
