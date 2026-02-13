@@ -372,3 +372,183 @@ body.alt-page{
     linear-gradient(180deg, rgba(255,255,255,.55), rgba(0,0,0,.06)),
     rgba(120, 190, 120, .32);
 }
+/* ============================================================
+   Dead Screen Menu (Minecraft-style)
+   ============================================================ */
+#deadMenu{
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  pointer-events: none; /* inner enables clicks */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#deadMenu .dead-menu-inner{
+  pointer-events: auto;
+  display: grid;
+  gap: 14px;
+  width: min(360px, 86vw);
+  transform: translateY(50px);
+}
+
+#deadMenu .dead-btn{
+  font-family: 'Press Start 2P', monospace;
+  letter-spacing: 0.5px;
+  padding: 14px 14px;
+  border: 3px solid rgba(255,255,255,0.25);
+  background: rgba(30,30,30,0.75);
+  color: rgba(255,255,255,0.92);
+  box-shadow: 0 6px 0 rgba(0,0,0,0.35);
+  cursor: pointer;
+}
+
+#deadMenu .dead-btn:hover{
+  border-color: rgba(255,255,255,0.55);
+  background: rgba(40,40,40,0.82);
+}
+
+#deadMenu .dead-btn:active{
+  transform: translateY(2px);
+  box-shadow: 0 4px 0 rgba(0,0,0,0.35);
+}
+
+#deadMenu .dead-btn-primary{
+  border-color: rgba(255,255,255,0.55);
+}
+
+/* =========================
+   GIFT STAGE
+========================= */
+
+.hidden {
+  display: none;
+}
+
+.gift-stage {
+  margin-top: 25px;
+  text-align: center;
+}
+
+.gift-title {
+  margin-bottom: 20px;
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+
+.gift-box {
+  position: relative;
+  width: 140px;
+  height: 120px;
+  margin: 0 auto;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+/* Shake animation */
+.gift-box.shake {
+  animation: shake 0.25s ease;
+}
+
+@keyframes shake {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+  75% { transform: rotate(-3deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* Gift base */
+.gift-base {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(#c62828, #8e0000);
+  border: 4px solid #222;
+  box-shadow: inset 0 0 0 4px #fff3;
+}
+
+/* Ribbon */
+.gift-base::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 18px;
+  height: 100%;
+  background: #ffd54f;
+  transform: translateX(-50%);
+}
+
+/* Lid */
+.gift-lid {
+  position: absolute;
+  top: -35px;
+  left: 0;
+  width: 100%;
+  height: 40px;
+  background: linear-gradient(#d32f2f, #9a0007);
+  border: 4px solid #222;
+  box-shadow: inset 0 0 0 4px #fff3;
+  transition: transform 0.5s ease;
+}
+
+/* Open lid animation */
+.gift-box.open .gift-lid {
+  transform: translateY(-50px) rotate(-15deg);
+}
+
+/* =========================
+   FLOWERS
+========================= */
+
+.flower-reveal {
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  animation: fadeIn 0.8s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Dandelion */
+.flower {
+  position: relative;
+  width: 50px;
+  height: 90px;
+}
+
+.flower-head {
+  width: 50px;
+  height: 50px;
+  background: radial-gradient(circle, #fff176, #fbc02d);
+  border-radius: 50%;
+  box-shadow: 0 0 15px #ffeb3b;
+}
+
+.flower-stem {
+  width: 6px;
+  height: 50px;
+  background: #2e7d32;
+  margin: 0 auto;
+}
+
+/* Make the dead menu feel more "Minecraft" */
+body.dead-screen #card {
+  opacity: 0.25;
+  filter: grayscale(1);
+}
+
+#deadMenu .dead-menu-inner{
+  transform: translateY(10px); /* was 50px */
+}
+
+#deadMenu .dead-btn{
+  width: 100%;
+  text-align: center;
+}

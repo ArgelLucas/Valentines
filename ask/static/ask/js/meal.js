@@ -1,87 +1,145 @@
 /* ask/static/ask/js/meal.js
    ============================================================
-   ROMANTIC MEAL QUEST 🌹 (STEP-BY-STEP)
-   Flow: Food Area -> Food -> After-Eating Place -> Stars -> Confirm
-   - Supports real images per food item (optional "img" field)
-   - Fallback: nicer canvas-generated "food-ish" cards (not just circles)
-   - FIX: Better title readability + contrast
-   - FIX: z-index so modal always above book UI
+   MINECRAFT MEAL QUEST (STEP-BY-STEP + SCROLLABLE + READABLE)
+   Flow: Food Area -> Build Order -> After-Eating Place -> Stars -> Confirm -> Seal
+   - Multi-select foods with quantity (cart)
+   - Minecraft UI theme
+   - Modal body scrolls (footer pinned)
+   - Better contrast (confirm text readable)
+   - Food order uses "order" then A->Z
    ============================================================ */
 
 (() => {
   // -----------------------------
-  // 1) DATA (edit freely)
+  // 1) DATA
   // -----------------------------
-  // Tip: Add "img" to any food to use a real picture:
-  // { name:"Chickenjoy", tone:"#d35400", kind:"fried", img:"/static/ask/img/foods/jollibee/chickenjoy.png" }
   const restaurants = {
     jollibee: {
       name: "Jollibee",
       theme: "#ff4d6d",
       foods: [
-        { name: "Chickenjoy (1pc)", tone: "#d35400", kind: "fried" },
-        { name: "Chickenjoy (2pc)", tone: "#d35400", kind: "fried" },
-        { name: "Jolly Spaghetti", tone: "#e74c3c", kind: "pasta" },
-        { name: "Burger Steak", tone: "#8e5c2c", kind: "steak" },
-        { name: "Yumburger", tone: "#f39c12", kind: "burger" },
-        { name: "Cheesy Yumburger", tone: "#f1c40f", kind: "burger" },
-        { name: "Chicken Sandwich", tone: "#e67e22", kind: "burger" },
-        { name: "Palabok Fiesta", tone: "#c0392b", kind: "noodles" },
-        { name: "Peach Mango Pie", tone: "#f5b041", kind: "dessert" },
-        { name: "Jolly Hotdog", tone: "#e74c3c", kind: "hotdog" },
-        { name: "Breakfast: Longganisa", tone: "#b03a2e", kind: "breakfast" },
-        { name: "Pineapple Juice", tone: "#f7dc6f", kind: "drink" }
+        // Chickenjoy / mains
+        { name: "Chickenjoy (1pc)", tone: "#d35400", kind: "fried", order: 1 },
+        { name: "Chickenjoy (2pc)", tone: "#d35400", kind: "fried", order: 2 },
+        { name: "Chickenjoy (Bucket)", tone: "#d35400", kind: "fried", order: 3 },
+        { name: "Chicken Sandwich", tone: "#e67e22", kind: "burger", order: 4 },
+        { name: "Yumburger", tone: "#f39c12", kind: "burger", order: 5 },
+        { name: "Cheesy Yumburger", tone: "#f1c40f", kind: "burger", order: 6 },
+        { name: "Jolly Hotdog", tone: "#e74c3c", kind: "hotdog", order: 7 },
+        { name: "Burger Steak (1pc)", tone: "#8e5c2c", kind: "steak", order: 8 },
+        { name: "Burger Steak (2pc)", tone: "#8e5c2c", kind: "steak", order: 9 },
+
+        // Pasta / noodles
+        { name: "Jolly Spaghetti", tone: "#e74c3c", kind: "pasta", order: 10 },
+        { name: "Palabok Fiesta", tone: "#c0392b", kind: "noodles", order: 11 },
+
+        // Sides / add-ons
+        { name: "Rice", tone: "#f4d03f", kind: "rice", order: 12 },
+        { name: "Fries", tone: "#f39c12", kind: "fries", order: 13 },
+        { name: "Mashed Potato", tone: "#f5cba7", kind: "side", order: 14 },
+
+        // Desserts
+        { name: "Peach Mango Pie", tone: "#f5b041", kind: "dessert", order: 15 },
+        { name: "Sundae", tone: "#af7ac5", kind: "dessert", order: 16 },
+
+        // Drinks
+        { name: "Coke", tone: "#cb4335", kind: "drink", order: 17 },
+        { name: "Sprite", tone: "#2ecc71", kind: "drink", order: 18 },
+        { name: "Iced Tea", tone: "#5dade2", kind: "drink", order: 19 },
+        { name: "Pineapple Juice", tone: "#f7dc6f", kind: "drink", order: 20 },
+
+        // Breakfast (extra)
+        { name: "Breakfast: Longganisa", tone: "#b03a2e", kind: "breakfast", order: 30 },
+        { name: "Breakfast: Tapa", tone: "#6e2c00", kind: "breakfast", order: 31 }
       ]
     },
+
     mcdo: {
       name: "McDonald's",
       theme: "#f1c40f",
       foods: [
-        { name: "Big Mac", tone: "#f1c40f", kind: "burger" },
-        { name: "McChicken", tone: "#f39c12", kind: "burger" },
-        { name: "Quarter Pounder", tone: "#d35400", kind: "burger" },
-        { name: "Cheeseburger", tone: "#f4d03f", kind: "burger" },
-        { name: "Chicken McNuggets", tone: "#f39c12", kind: "fried" },
-        { name: "McSpaghetti", tone: "#c0392b", kind: "pasta" },
-        { name: "McCrispy Chicken", tone: "#e67e22", kind: "fried" },
-        { name: "BFF Fries", tone: "#f39c12", kind: "fries" },
-        { name: "Apple Pie", tone: "#f5b041", kind: "dessert" },
-        { name: "Sundae", tone: "#af7ac5", kind: "dessert" },
-        { name: "McFloat", tone: "#85c1e9", kind: "drink" },
-        { name: "Iced Coffee", tone: "#6e2c00", kind: "drink" }
+        // Burgers
+        { name: "Big Mac", tone: "#f1c40f", kind: "burger", order: 1 },
+        { name: "Quarter Pounder", tone: "#d35400", kind: "burger", order: 2 },
+        { name: "McChicken", tone: "#f39c12", kind: "burger", order: 3 },
+        { name: "Cheeseburger", tone: "#f4d03f", kind: "burger", order: 4 },
+        { name: "Chicken Sandwich", tone: "#e67e22", kind: "burger", order: 5 },
+
+        // Chicken
+        { name: "McCrispy Chicken", tone: "#e67e22", kind: "fried", order: 6 },
+        { name: "Chicken McNuggets (6pc)", tone: "#f39c12", kind: "fried", order: 7 },
+        { name: "Chicken McNuggets (10pc)", tone: "#f39c12", kind: "fried", order: 8 },
+
+        // Sides
+        { name: "Regular Fries", tone: "#f39c12", kind: "fries", order: 9 },
+        { name: "BFF Fries", tone: "#f39c12", kind: "fries", order: 10 },
+        { name: "Apple Slices", tone: "#85c1e9", kind: "side", order: 11 },
+
+        // Pasta
+        { name: "McSpaghetti", tone: "#c0392b", kind: "pasta", order: 12 },
+
+        // Desserts
+        { name: "Sundae", tone: "#af7ac5", kind: "dessert", order: 13 },
+        { name: "Apple Pie", tone: "#f5b041", kind: "dessert", order: 14 },
+        { name: "McFlurry", tone: "#af7ac5", kind: "dessert", order: 15 },
+
+        // Drinks
+        { name: "Coke McFloat", tone: "#85c1e9", kind: "drink", order: 16 },
+        { name: "Iced Coffee", tone: "#6e2c00", kind: "drink", order: 17 },
+        { name: "Orange Juice", tone: "#f7dc6f", kind: "drink", order: 18 }
       ]
     },
+
     manginasal: {
       name: "Mang Inasal",
       theme: "#27ae60",
       foods: [
-        { name: "PM1: Chicken Inasal (Pecho)", tone: "#a04000", kind: "grill" },
-        { name: "PM1: Chicken Inasal (Paa)", tone: "#935116", kind: "grill" },
-        { name: "Pork BBQ", tone: "#b03a2e", kind: "grill" },
-        { name: "Liempo", tone: "#6e2c00", kind: "grill" },
-        { name: "Bangus Sisig", tone: "#7f8c8d", kind: "sisig" },
-        { name: "Pork Sisig", tone: "#8e5c2c", kind: "sisig" },
-        { name: "Halo-Halo", tone: "#af7ac5", kind: "dessert" },
-        { name: "Leche Flan", tone: "#f5cba7", kind: "dessert" },
-        { name: "Chicken Soup", tone: "#f7dc6f", kind: "soup" },
-        { name: "Pandesal Meal", tone: "#d7bde2", kind: "breakfast" },
-        { name: "Iced Tea", tone: "#5dade2", kind: "drink" }
+        // Mains
+        { name: "PM1: Chicken Inasal (Pecho)", tone: "#a04000", kind: "grill", order: 1 },
+        { name: "PM1: Chicken Inasal (Paa)", tone: "#935116", kind: "grill", order: 2 },
+        { name: "Pork BBQ", tone: "#b03a2e", kind: "grill", order: 3 },
+        { name: "Liempo", tone: "#6e2c00", kind: "grill", order: 4 },
+        { name: "Pork Sisig", tone: "#8e5c2c", kind: "sisig", order: 5 },
+        { name: "Bangus Sisig", tone: "#7f8c8d", kind: "sisig", order: 6 },
+
+        // Sides
+        { name: "Extra Rice", tone: "#f4d03f", kind: "rice", order: 7 },
+        { name: "Chicken Soup", tone: "#f7dc6f", kind: "soup", order: 8 },
+
+        // Desserts
+        { name: "Halo-Halo", tone: "#af7ac5", kind: "dessert", order: 9 },
+        { name: "Leche Flan", tone: "#f5cba7", kind: "dessert", order: 10 },
+
+        // Drinks
+        { name: "Iced Tea", tone: "#5dade2", kind: "drink", order: 11 },
+        { name: "Softdrink", tone: "#85c1e9", kind: "drink", order: 12 }
       ]
     },
+
     chowking: {
       name: "Chowking",
       theme: "#e74c3c",
       foods: [
-        { name: "Chao Fan", tone: "#d68910", kind: "rice" },
-        { name: "Siopao", tone: "#f5cba7", kind: "bun" },
-        { name: "Sweet & Sour Pork", tone: "#cb4335", kind: "pork" },
-        { name: "Beef Wanton Mami", tone: "#a04000", kind: "noodles" },
-        { name: "Lauriat (Chicken)", tone: "#e67e22", kind: "meal" },
-        { name: "La Paz Batchoy", tone: "#8e5c2c", kind: "noodles" },
-        { name: "Siomai", tone: "#f0b27a", kind: "dimsum" },
-        { name: "Halo-Halo", tone: "#af7ac5", kind: "dessert" },
-        { name: "Buchi", tone: "#f5b041", kind: "dessert" },
-        { name: "Milk Tea", tone: "#d2b48c", kind: "drink" }
+        // Rice / meals
+        { name: "Chao Fan", tone: "#d68910", kind: "rice", order: 1 },
+        { name: "Lauriat (Chicken)", tone: "#e67e22", kind: "meal", order: 2 },
+        { name: "Sweet & Sour Pork", tone: "#cb4335", kind: "pork", order: 3 },
+
+        // Noodles / soup
+        { name: "Beef Wanton Mami", tone: "#a04000", kind: "noodles", order: 4 },
+        { name: "La Paz Batchoy", tone: "#8e5c2c", kind: "noodles", order: 5 },
+
+        // Dimsum
+        { name: "Siomai", tone: "#f0b27a", kind: "dimsum", order: 6 },
+        { name: "Siopao", tone: "#f5cba7", kind: "bun", order: 7 },
+
+        // Desserts
+        { name: "Halo-Halo", tone: "#af7ac5", kind: "dessert", order: 8 },
+        { name: "Buchi", tone: "#f5b041", kind: "dessert", order: 9 },
+
+        // Drinks
+        { name: "Milk Tea", tone: "#d2b48c", kind: "drink", order: 10 },
+        { name: "Iced Tea", tone: "#5dade2", kind: "drink", order: 11 }
       ]
     }
   };
@@ -103,10 +161,13 @@
   // 2) STATE
   // -----------------------------
   const state = {
-    step: 1, // 1=restaurant, 2=food, 3=after place, 4=stars, 5=confirm
+    step: 1,
     restaurantKey: null,
     restaurantName: null,
-    foodName: null,
+
+    // NEW: cart of items instead of one food
+    cart: {}, // { [foodName]: { name, qty } }
+
     afterPlace: null,
     stars: 5
   };
@@ -128,7 +189,7 @@
 
       <div class="meal-box mc-ui" role="dialog" aria-label="Plan our meal date">
         <div class="meal-head">
-          <div class="meal-badge">Meal Quest</div>
+          <div class="meal-badge">MEAL QUEST</div>
           <h2 class="meal-title">Choose our meal date</h2>
           <p class="meal-subtitle">One step at a time — you pick, I’ll handle the rest.</p>
 
@@ -141,14 +202,12 @@
           </div>
         </div>
 
-        <div class="meal-body">
-          <!-- dynamic content -->
-        </div>
+        <div class="meal-body"></div>
 
         <div class="meal-footer">
-          <button type="button" class="meal-btn ghost" id="mealBack" aria-label="Go back">Back</button>
+          <button type="button" class="meal-btn ghost" id="mealBack">Back</button>
           <div class="meal-summary" id="mealSummary" aria-live="polite"></div>
-          <button type="button" class="meal-btn primary" id="mealNext" aria-label="Next step">Next</button>
+          <button type="button" class="meal-btn primary" id="mealNext">Next</button>
         </div>
       </div>
     `;
@@ -157,30 +216,32 @@
     document.body.classList.add("meal-lock");
     injectStyles();
 
-    modal.querySelector(".meal-overlay").addEventListener("click", () => modal.remove());
+    modal.querySelector(".meal-overlay").addEventListener("click", () => closeMealModal());
+    window.addEventListener("keydown", escClose);
 
-    const escHandler = (e) => {
-      if (e.key === "Escape") {
-        const m = document.getElementById("mealModal");
-        if (m) m.remove();
-        window.removeEventListener("keydown", escHandler);
-      }
-    };
-    window.addEventListener("keydown", escHandler);
-
-    // footer buttons
     modal.querySelector("#mealBack").addEventListener("click", onBack);
     modal.querySelector("#mealNext").addEventListener("click", onNext);
 
-    // start
+    // reset state
     state.step = 1;
     state.restaurantKey = null;
     state.restaurantName = null;
-    state.foodName = null;
+    state.cart = {};
     state.afterPlace = null;
     state.stars = 5;
 
     render();
+
+    function escClose(e) {
+      if (e.key === "Escape") closeMealModal();
+    }
+
+    function closeMealModal() {
+      const m = document.getElementById("mealModal");
+      if (m) m.remove();
+      document.body.classList.remove("meal-lock");
+      window.removeEventListener("keydown", escClose);
+    }
   }
 
   // -----------------------------
@@ -197,7 +258,7 @@
     body.innerHTML = "";
 
     if (state.step === 1) renderRestaurantStep(body);
-    if (state.step === 2) renderFoodStep(body);
+    if (state.step === 2) renderFoodStep(body);        // now: build order
     if (state.step === 3) renderAfterPlaceStep(body);
     if (state.step === 4) renderStarsStep(body);
     if (state.step === 5) renderConfirmStep(body);
@@ -219,13 +280,11 @@
     back.disabled = state.step === 1;
     next.textContent = state.step === 5 ? "Seal the Date" : "Next";
 
-    // Disable next until selection is made
     let ok = true;
     if (state.step === 1) ok = !!state.restaurantKey;
-    if (state.step === 2) ok = !!state.foodName;
+    if (state.step === 2) ok = cartCount() > 0; // NEW
     if (state.step === 3) ok = !!state.afterPlace;
     if (state.step === 4) ok = typeof state.stars === "number" && state.stars >= 1;
-    if (state.step === 5) ok = true;
 
     next.disabled = !ok;
   }
@@ -236,9 +295,12 @@
 
     const parts = [];
     if (state.restaurantName) parts.push(`<span class="pill">${escapeHtml(state.restaurantName)}</span>`);
-    if (state.foodName) parts.push(`<span class="pill">${escapeHtml(state.foodName)}</span>`);
+
+    const cnt = cartCount();
+    if (cnt > 0) parts.push(`<span class="pill">${cnt} item${cnt === 1 ? "" : "s"}</span>`);
+
     if (state.afterPlace) parts.push(`<span class="pill">${escapeHtml(state.afterPlace)}</span>`);
-    if (state.step >= 4) parts.push(`<span class="pill">${"★".repeat(state.stars)}${"☆".repeat(5 - state.stars)}</span>`);
+    if (state.step >= 4) parts.push(`<span class="pill">${starText(state.stars)}</span>`);
 
     el.innerHTML = parts.length ? parts.join(" ") : `<span class="hint">Pick a Food Area to begin.</span>`;
   }
@@ -256,43 +318,48 @@
       return;
     }
 
-    // Final seal: show stars animation and close button
+    // Seal
     const modal = document.getElementById("mealModal");
     if (!modal) return;
 
     const body = modal.querySelector(".meal-body");
+    const footer = modal.querySelector(".meal-footer");
     if (!body) return;
 
     body.innerHTML = `
       <div class="final-wrap">
-        <div class="final-title">It’s a date. 💘</div>
-        <div class="final-line">
-          <strong>${escapeHtml(state.restaurantName)}</strong> — ${escapeHtml(state.foodName)}
-        </div>
-        <div class="final-line">
-          After: <strong>${escapeHtml(state.afterPlace)}</strong>
-        </div>
+        <div class="final-title">It’s a date.</div>
+        <div class="final-line"><span>Food Area:</span> <strong>${escapeHtml(state.restaurantName)}</strong></div>
 
-        <div class="final-stars" id="finalStars">${renderStarRow(state.stars)}</div>
-        <button class="meal-btn primary final-btn" id="showStarsBtn" type="button">See the stars ✨</button>
+        <div class="final-line"><span>Order:</span></div>
+        <div class="final-list">${escapeHtml(orderText())}</div>
 
-        <button class="meal-btn ghost final-btn" id="closeMeal" type="button">Close</button>
+        <div class="final-line"><span>After:</span> <strong>${escapeHtml(state.afterPlace)}</strong></div>
+
+        <div class="final-stars" id="finalStars">${starText(state.stars)}</div>
+
+        <button class="meal-btn ghost inline" id="showStarsBtn" type="button">See the stars</button>
+        <button class="meal-btn primary inline" id="closeMeal" type="button">Close</button>
       </div>
     `;
 
+    if (footer) footer.classList.add("hidden");
+
     const showStarsBtn = document.getElementById("showStarsBtn");
-    if (showStarsBtn) {
-      showStarsBtn.addEventListener("click", () => popStars(28), { once: false });
-    }
+    if (showStarsBtn) showStarsBtn.addEventListener("click", () => popStars(26));
 
     const closeBtn = document.getElementById("closeMeal");
     if (closeBtn) {
-      closeBtn.addEventListener("click", () => modal.remove(), { once: true });
+      closeBtn.addEventListener(
+        "click",
+        () => {
+          const m = document.getElementById("mealModal");
+          if (m) m.remove();
+          document.body.classList.remove("meal-lock");
+        },
+        { once: true }
+      );
     }
-
-    // Hide footer on final screen
-    const footer = modal.querySelector(".meal-footer");
-    if (footer) footer.classList.add("hidden");
   }
 
   // -----------------------------
@@ -308,6 +375,7 @@
     const grid = body.querySelector(".choice-grid");
     Object.keys(restaurants).forEach((key) => {
       const r = restaurants[key];
+
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "choice-card";
@@ -316,21 +384,25 @@
           <div class="choice-icon" style="background:${r.theme}"></div>
           <div class="choice-name">${escapeHtml(r.name)}</div>
         </div>
-        <div class="choice-meta">${r.foods.length} options</div>
+        <div class="choice-meta">${r.foods.length} items</div>
       `;
 
       if (state.restaurantKey === key) btn.classList.add("active");
 
       btn.addEventListener("click", () => {
+        grid.querySelectorAll(".choice-card").forEach((c) => c.classList.remove("active"));
+        btn.classList.add("active");
+
         state.restaurantKey = key;
         state.restaurantName = r.name;
 
-        // reset downstream choices
-        state.foodName = null;
+        // reset downstream
+        state.cart = {};
         state.afterPlace = null;
         state.stars = 5;
 
-        render();
+        updateFooterButtons();
+        updateSummary();
       });
 
       grid.appendChild(btn);
@@ -346,41 +418,127 @@
     }
 
     body.innerHTML = `
-      <h3 class="step-title">Foods</h3>
-      <p class="step-sub">Pick what we’ll order at <strong>${escapeHtml(r.name)}</strong>.</p>
+      <h3 class="step-title">Build our order</h3>
+      <p class="step-sub">Pick anything you want at <strong>${escapeHtml(r.name)}</strong> (you can choose multiple).</p>
 
       <div class="search-wrap">
-        <input id="foodSearch" class="meal-input" type="text" placeholder="Search food..." autocomplete="off" />
+        <input id="foodSearch" class="meal-input" type="text" placeholder="Search items..." autocomplete="off" />
       </div>
+
+      <div class="cart-bar" id="cartBar">
+        <div class="cart-left">
+          <div class="cart-title">Your order</div>
+          <div class="cart-sub" id="cartSub">Pick at least one item.</div>
+        </div>
+        <button class="meal-btn ghost cart-clear" id="cartClear" type="button">Clear</button>
+      </div>
+
+      <div class="cart-chips" id="cartChips" aria-label="Selected items"></div>
 
       <div class="food-grid" aria-label="Food choices"></div>
     `;
 
     const input = body.querySelector("#foodSearch");
     const grid = body.querySelector(".food-grid");
+    const cartChips = body.querySelector("#cartChips");
+    const cartSub = body.querySelector("#cartSub");
+    const cartClear = body.querySelector("#cartClear");
+
+    const foodsSorted = sortFoods(r.foods);
+
+    const renderCart = () => {
+      const items = Object.values(state.cart);
+      const count = cartCount();
+      cartSub.textContent = count ? `${count} item${count === 1 ? "" : "s"} selected` : "Pick at least one item.";
+
+      cartChips.innerHTML = "";
+      if (!items.length) {
+        cartChips.innerHTML = `<div class="empty">No items yet. Tap foods below to add them.</div>`;
+      } else {
+        items.forEach((it) => {
+          const chip = document.createElement("div");
+          chip.className = "cart-chip";
+          chip.innerHTML = `
+            <div class="chip-name">${escapeHtml(it.name)}</div>
+
+            <div class="qty">
+              <button type="button" class="qty-btn" aria-label="Decrease">−</button>
+              <div class="qty-num">${it.qty}</div>
+              <button type="button" class="qty-btn" aria-label="Increase">+</button>
+            </div>
+
+            <button type="button" class="chip-x" aria-label="Remove">✕</button>
+          `;
+
+          const [minusBtn, plusBtn] = chip.querySelectorAll(".qty-btn");
+          const xBtn = chip.querySelector(".chip-x");
+
+          minusBtn.addEventListener("click", () => {
+            it.qty = Math.max(1, (it.qty || 1) - 1);
+            state.cart[it.name].qty = it.qty;
+            renderCart();
+            updateFooterButtons();
+            updateSummary();
+          });
+
+          plusBtn.addEventListener("click", () => {
+            it.qty = Math.min(9, (it.qty || 1) + 1);
+            state.cart[it.name].qty = it.qty;
+            renderCart();
+            updateFooterButtons();
+            updateSummary();
+          });
+
+          xBtn.addEventListener("click", () => {
+            delete state.cart[it.name];
+            renderCart();
+            updateFooterButtons();
+            updateSummary();
+          });
+
+          cartChips.appendChild(chip);
+        });
+      }
+    };
+
+    const toggleItem = (food) => {
+      const key = food.name;
+      if (state.cart[key]) {
+        // remove
+        delete state.cart[key];
+      } else {
+        // add with qty 1
+        state.cart[key] = { name: food.name, qty: 1 };
+      }
+      renderCart();
+      updateFooterButtons();
+      updateSummary();
+    };
 
     const renderList = (q) => {
       grid.innerHTML = "";
       const query = (q || "").trim().toLowerCase();
 
-      r.foods
-        .filter(f => !query || f.name.toLowerCase().includes(query))
+      foodsSorted
+        .filter((f) => !query || f.name.toLowerCase().includes(query))
         .forEach((food) => {
           const card = document.createElement("button");
           card.type = "button";
           card.className = "food-card";
-          if (state.foodName === food.name) card.classList.add("active");
+          if (state.cart[food.name]) card.classList.add("active");
 
           const imgSrc = food.img ? food.img : generateFoodPNG(food.name, food.tone, food.kind);
 
           card.innerHTML = `
             <img alt="${escapeHtml(food.name)}" src="${imgSrc}" />
             <div class="food-name">${escapeHtml(food.name)}</div>
+            <div class="food-meta">${state.cart[food.name] ? "Added ✓" : "Tap to add"}</div>
           `;
 
           card.addEventListener("click", () => {
-            state.foodName = food.name;
-            render();
+            toggleItem(food);
+            // update visuals fast
+            renderList(input.value);
           });
 
           grid.appendChild(card);
@@ -391,6 +549,15 @@
       }
     };
 
+    cartClear.addEventListener("click", () => {
+      state.cart = {};
+      renderCart();
+      renderList(input.value);
+      updateFooterButtons();
+      updateSummary();
+    });
+
+    renderCart();
     renderList("");
     input.addEventListener("input", () => renderList(input.value));
   }
@@ -403,6 +570,7 @@
     `;
 
     const grid = body.querySelector(".choice-grid");
+
     afterPlaces.forEach((p) => {
       const btn = document.createElement("button");
       btn.type = "button";
@@ -410,7 +578,7 @@
 
       btn.innerHTML = `
         <div class="choice-top">
-          <div class="choice-emoji">${escapeHtml(p.name.split(" ").slice(-1)[0] || "✨")}</div>
+          <div class="choice-emoji">✦</div>
           <div class="choice-name">${escapeHtml(p.name)}</div>
         </div>
         <div class="choice-meta">${escapeHtml(p.vibe)}</div>
@@ -419,8 +587,12 @@
       if (state.afterPlace === p.name) btn.classList.add("active");
 
       btn.addEventListener("click", () => {
+        grid.querySelectorAll(".choice-card").forEach((c) => c.classList.remove("active"));
+        btn.classList.add("active");
+
         state.afterPlace = p.name;
-        render();
+        updateFooterButtons();
+        updateSummary();
       });
 
       grid.appendChild(btn);
@@ -437,22 +609,19 @@
         <div class="stars-label" id="starsLabel"></div>
       </div>
 
-      <button class="meal-btn ghost inline" id="seeStars" type="button">See the stars ✨</button>
+      <button class="meal-btn ghost inline" id="seeStars" type="button">See the stars</button>
     `;
 
     const starsPick = body.querySelector("#starsPick");
     const label = body.querySelector("#starsLabel");
     const seeStars = body.querySelector("#seeStars");
 
-    const setLabel = () => {
-      const labels = {
-        1: "We can do better 😅",
-        2: "Not bad, not bad",
-        3: "Cute!",
-        4: "Almost perfect",
-        5: "Perfect. No notes. 💘"
-      };
-      label.textContent = labels[state.stars] || "";
+    const labels = {
+      1: "We can do better",
+      2: "Not bad",
+      3: "Cute",
+      4: "Almost perfect",
+      5: "Perfect"
     };
 
     const drawStars = () => {
@@ -466,7 +635,7 @@
         b.addEventListener("click", () => {
           state.stars = i;
           drawStars();
-          setLabel();
+          label.textContent = labels[i] || "";
           updateFooterButtons();
           updateSummary();
         });
@@ -475,7 +644,7 @@
     };
 
     drawStars();
-    setLabel();
+    label.textContent = labels[state.stars] || "";
 
     if (seeStars) seeStars.addEventListener("click", () => popStars(22));
   }
@@ -485,19 +654,45 @@
       <h3 class="step-title">Confirm</h3>
       <p class="step-sub">Here’s our plan:</p>
 
-      <div class="confirm-card">
-        <div class="confirm-row"><span>Food Area</span><strong>${escapeHtml(state.restaurantName || "-")}</strong></div>
-        <div class="confirm-row"><span>Food</span><strong>${escapeHtml(state.foodName || "-")}</strong></div>
-        <div class="confirm-row"><span>After</span><strong>${escapeHtml(state.afterPlace || "-")}</strong></div>
-        <div class="confirm-row"><span>Rating</span><strong>${renderStarRow(state.stars)}</strong></div>
+      <div class="mc-panel">
+        <div class="mc-row"><span>Food Area</span><strong>${escapeHtml(state.restaurantName || "-")}</strong></div>
+        <div class="mc-row"><span>Order</span><strong>${escapeHtml(orderText() || "-")}</strong></div>
+        <div class="mc-row"><span>After</span><strong>${escapeHtml(state.afterPlace || "-")}</strong></div>
+        <div class="mc-row"><span>Rating</span><strong class="stars-strong">${starText(state.stars)}</strong></div>
       </div>
 
-      <p class="tiny-note">Hit “Seal the Date” to finish.</p>
+      <p class="tiny-note">Hit <strong>Seal the Date</strong> to finish.</p>
     `;
   }
 
   // -----------------------------
-  // 5) FOOD IMAGE GENERATOR (better than circles)
+  // 5) FOOD ORDERING
+  // -----------------------------
+  function sortFoods(list) {
+    return [...list].sort((a, b) => {
+      const ao = Number.isFinite(a.order) ? a.order : 9999;
+      const bo = Number.isFinite(b.order) ? b.order : 9999;
+      if (ao !== bo) return ao - bo;
+      return String(a.name).localeCompare(String(b.name));
+    });
+  }
+
+  function cartCount() {
+    return Object.keys(state.cart || {}).length;
+  }
+
+  function orderText() {
+    const items = Object.values(state.cart || {});
+    if (!items.length) return "";
+    // keep stable order by name
+    items.sort((a, b) => String(a.name).localeCompare(String(b.name)));
+    return items
+      .map((it) => (it.qty > 1 ? `${it.name} x${it.qty}` : it.name))
+      .join(", ");
+  }
+
+  // -----------------------------
+  // 6) FOOD IMAGE GENERATOR
   // -----------------------------
   function generateFoodPNG(text, tone, kind) {
     const canvas = document.createElement("canvas");
@@ -506,88 +701,64 @@
 
     const ctx = canvas.getContext("2d");
 
-    // soft background
-    roundRect(ctx, 0, 0, canvas.width, canvas.height, 18);
-    ctx.fillStyle = "#fff7fa";
-    ctx.fill();
-
-    // subtle gradient tint
-    const g = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    g.addColorStop(0, "rgba(255,77,109,0.12)");
-    g.addColorStop(1, "rgba(0,0,0,0.03)");
-    ctx.fillStyle = g;
-    roundRect(ctx, 0, 0, canvas.width, canvas.height, 18);
+    // background
+    roundRect(ctx, 0, 0, canvas.width, canvas.height, 12);
+    ctx.fillStyle = "#f4eef2";
     ctx.fill();
 
     // plate
     ctx.save();
     ctx.translate(160, 110);
-    ctx.shadowColor = "rgba(0,0,0,0.12)";
-    ctx.shadowBlur = 16;
     ctx.fillStyle = "#ffffff";
     ctx.beginPath();
     ctx.ellipse(0, 10, 110, 55, 0, 0, Math.PI * 2);
     ctx.fill();
-
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = "rgba(0,0,0,0.06)";
+    ctx.strokeStyle = "rgba(0,0,0,0.08)";
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.ellipse(0, 10, 95, 45, 0, 0, Math.PI * 2);
     ctx.stroke();
 
-    // food based on kind (simple shapes but looks more “food”)
     const base = tone || "#ff4d6d";
     if (kind === "burger") drawBurger(ctx, base);
     else if (kind === "pasta") drawPasta(ctx, base);
     else if (kind === "noodles") drawNoodles(ctx, base);
     else if (kind === "fried") drawFried(ctx, base);
     else if (kind === "fries") drawFries(ctx, base);
-    else if (kind === "dessert") drawDessert(ctx, base);
     else if (kind === "drink") drawDrink(ctx, base);
-    else if (kind === "grill") drawGrill(ctx, base);
-    else if (kind === "rice") drawRice(ctx, base);
     else drawDefaultFood(ctx, base);
 
     ctx.restore();
 
     // label strip
-    ctx.fillStyle = "rgba(255,255,255,0.85)";
-    roundRect(ctx, 14, 160, 292, 44, 14);
+    ctx.fillStyle = "rgba(255,255,255,0.9)";
+    roundRect(ctx, 14, 152, 292, 50, 10);
     ctx.fill();
-    ctx.strokeStyle = "rgba(0,0,0,0.06)";
+    ctx.strokeStyle = "rgba(0,0,0,0.08)";
     ctx.stroke();
 
-    ctx.fillStyle = "#1f1f1f";
-    ctx.font = "800 16px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+    ctx.fillStyle = "#111";
+    ctx.font = "900 14px system-ui, -apple-system, Segoe UI, Roboto, Arial";
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
-    const label = text.length > 26 ? text.slice(0, 26) + "…" : text;
-    ctx.fillText(label, 26, 182);
+    const label = text.length > 28 ? text.slice(0, 28) + "…" : text;
+    ctx.fillText(label, 24, 178);
 
     return canvas.toDataURL("image/png");
   }
 
   function drawBurger(ctx, base) {
-    // bun top
     ctx.fillStyle = lighten(base, 0.35);
-    roundRect(ctx, -70, -35, 140, 45, 22);
+    roundRect(ctx, -70, -35, 140, 45, 18);
     ctx.fill();
-    // sesame
-    ctx.fillStyle = "rgba(255,255,255,0.7)";
-    for (let i = 0; i < 10; i++) {
-      ctx.beginPath();
-      ctx.ellipse(rand(-45, 45), rand(-28, -8), rand(2, 4), rand(1, 2.2), rand(0, Math.PI), 0, Math.PI * 2);
-      ctx.fill();
-    }
-    // lettuce
+
     ctx.fillStyle = "#2ecc71";
-    waveRect(ctx, -65, 5, 130, 12, 6);
-    // patty
+    ctx.fillRect(-62, 6, 124, 10);
+
     ctx.fillStyle = "#6e2c00";
-    roundRect(ctx, -62, 14, 124, 16, 10);
+    roundRect(ctx, -62, 16, 124, 16, 8);
     ctx.fill();
-    // cheese
+
     ctx.fillStyle = "#f1c40f";
     ctx.beginPath();
     ctx.moveTo(-40, 18);
@@ -596,9 +767,9 @@
     ctx.lineTo(-25, 34);
     ctx.closePath();
     ctx.fill();
-    // bun bottom
+
     ctx.fillStyle = lighten(base, 0.25);
-    roundRect(ctx, -70, 30, 140, 24, 16);
+    roundRect(ctx, -70, 32, 140, 24, 14);
     ctx.fill();
   }
 
@@ -606,15 +777,14 @@
     ctx.strokeStyle = lighten(base, 0.25);
     ctx.lineWidth = 6;
     ctx.lineCap = "round";
-    for (let i = 0; i < 14; i++) {
+    for (let i = 0; i < 12; i++) {
       ctx.beginPath();
       ctx.moveTo(rand(-70, 70), rand(-5, 35));
       ctx.bezierCurveTo(rand(-80, 80), rand(-30, 50), rand(-80, 80), rand(-30, 50), rand(-70, 70), rand(-10, 40));
       ctx.stroke();
     }
-    // sauce blobs
     ctx.fillStyle = base;
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 6; i++) {
       ctx.beginPath();
       ctx.arc(rand(-65, 65), rand(-20, 35), rand(10, 16), 0, Math.PI * 2);
       ctx.fill();
@@ -625,14 +795,14 @@
     ctx.strokeStyle = lighten(base, 0.35);
     ctx.lineWidth = 5;
     ctx.lineCap = "round";
-    for (let i = 0; i < 16; i++) {
+    for (let i = 0; i < 14; i++) {
       ctx.beginPath();
       ctx.moveTo(-80, rand(-20, 35));
       ctx.quadraticCurveTo(rand(-20, 20), rand(-40, 50), 80, rand(-20, 35));
       ctx.stroke();
     }
     ctx.fillStyle = base;
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 3; i++) {
       ctx.beginPath();
       ctx.arc(rand(-55, 55), rand(-15, 30), rand(10, 14), 0, Math.PI * 2);
       ctx.fill();
@@ -642,13 +812,7 @@
   function drawFried(ctx, base) {
     ctx.fillStyle = lighten(base, 0.15);
     for (let i = 0; i < 6; i++) {
-      roundRect(ctx, rand(-70, 40), rand(-10, 35), rand(40, 70), rand(22, 36), 16);
-      ctx.fill();
-    }
-    ctx.fillStyle = "rgba(0,0,0,0.10)";
-    for (let i = 0; i < 10; i++) {
-      ctx.beginPath();
-      ctx.arc(rand(-70, 70), rand(-15, 40), rand(2, 4), 0, Math.PI * 2);
+      roundRect(ctx, rand(-70, 40), rand(-10, 35), rand(40, 70), rand(22, 36), 14);
       ctx.fill();
     }
   }
@@ -664,78 +828,16 @@
     ctx.fill();
   }
 
-  function drawDessert(ctx, base) {
-    ctx.fillStyle = lighten(base, 0.25);
-    ctx.beginPath();
-    ctx.ellipse(0, 10, 60, 35, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = base;
-    ctx.beginPath();
-    ctx.ellipse(0, 0, 55, 30, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = "rgba(255,255,255,0.65)";
-    ctx.beginPath();
-    ctx.arc(18, -6, 10, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = "#2f2f2f";
-    ctx.beginPath();
-    ctx.arc(-20, -6, 4, 0, Math.PI * 2);
-    ctx.arc(-6, -10, 4, 0, Math.PI * 2);
-    ctx.arc(6, -4, 4, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
   function drawDrink(ctx, base) {
-    ctx.fillStyle = "rgba(255,255,255,0.8)";
-    roundRect(ctx, -30, -45, 60, 95, 14);
+    ctx.fillStyle = "rgba(255,255,255,0.85)";
+    roundRect(ctx, -30, -45, 60, 95, 12);
     ctx.fill();
-    ctx.strokeStyle = "rgba(0,0,0,0.08)";
+    ctx.strokeStyle = "rgba(0,0,0,0.10)";
     ctx.stroke();
 
     ctx.fillStyle = base;
-    roundRect(ctx, -26, -5, 52, 50, 12);
+    roundRect(ctx, -26, -5, 52, 50, 10);
     ctx.fill();
-
-    ctx.strokeStyle = lighten(base, 0.35);
-    ctx.lineWidth = 6;
-    ctx.beginPath();
-    ctx.moveTo(10, -52);
-    ctx.lineTo(40, -10);
-    ctx.stroke();
-  }
-
-  function drawGrill(ctx, base) {
-    ctx.fillStyle = base;
-    roundRect(ctx, -70, -10, 140, 40, 18);
-    ctx.fill();
-    ctx.fillStyle = "rgba(0,0,0,0.12)";
-    for (let i = 0; i < 6; i++) {
-      roundRect(ctx, -60 + i * 20, -6, 10, 32, 6);
-      ctx.fill();
-    }
-    ctx.fillStyle = "#27ae60";
-    waveRect(ctx, -65, 28, 130, 10, 6);
-  }
-
-  function drawRice(ctx, base) {
-    ctx.fillStyle = "#ffffff";
-    ctx.beginPath();
-    ctx.ellipse(0, 12, 70, 40, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = base;
-    roundRect(ctx, -55, -15, 110, 30, 16);
-    ctx.fill();
-
-    ctx.fillStyle = "rgba(255,255,255,0.6)";
-    for (let i = 0; i < 10; i++) {
-      ctx.beginPath();
-      ctx.ellipse(rand(-60, 60), rand(0, 35), rand(3, 6), rand(2, 4), rand(0, Math.PI), 0, Math.PI * 2);
-      ctx.fill();
-    }
   }
 
   function drawDefaultFood(ctx, base) {
@@ -743,14 +845,10 @@
     ctx.beginPath();
     ctx.ellipse(0, 10, 65, 35, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = "rgba(255,255,255,0.35)";
-    ctx.beginPath();
-    ctx.arc(20, 0, 12, 0, Math.PI * 2);
-    ctx.fill();
   }
 
   // -----------------------------
-  // 6) STARS FX
+  // 7) STARS FX
   // -----------------------------
   function popStars(count) {
     const modal = document.getElementById("mealModal");
@@ -762,432 +860,538 @@
       s.textContent = Math.random() > 0.5 ? "★" : "✦";
       s.style.left = `${rand(10, 90)}%`;
       s.style.top = `${rand(20, 80)}%`;
-      s.style.transform = `translate(-50%, -50%) scale(${rand(0.9, 1.6)}) rotate(${rand(-35, 35)}deg)`;
+      s.style.transform = `translate(-50%, -50%) scale(${rand(0.9, 1.6)})`;
       s.style.animationDuration = `${rand(700, 1200)}ms`;
       modal.appendChild(s);
       setTimeout(() => s.remove(), 1400);
     }
   }
 
-  function renderStarRow(n) {
+  function starText(n) {
     const full = "★".repeat(Math.max(0, Math.min(5, n)));
     const empty = "☆".repeat(Math.max(0, 5 - n));
     return `${full}${empty}`;
   }
 
   // -----------------------------
-  // 7) STYLES
+  // 8) MINECRAFT STYLES + SCROLL FIX
   // -----------------------------
   function injectStyles() {
-  if (document.getElementById("mealQuestStyles")) return;
+    if (document.getElementById("mealQuestStyles")) return;
 
-  const style = document.createElement("style");
-  style.id = "mealQuestStyles";
-  style.textContent = `
-    /* =========================
-       MODAL LAYER + SCROLL FIX
-       ========================= */
-    #mealModal{
-      position: fixed;
-      inset: 0;
-      z-index: 2000;
-      /* allow overlay scrolling on small screens */
-      overflow: auto;
-      -webkit-overflow-scrolling: touch;
-      padding: 18px;
-      box-sizing: border-box;
-    }
+    const style = document.createElement("style");
+    style.id = "mealQuestStyles";
+    style.textContent = `
+      #mealModal{
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 18px;
+        box-sizing: border-box;
+      }
 
-    .meal-overlay{
-      position: fixed;
-      inset: 0;
-      z-index: 2000;
-      background: rgba(0,0,0,0.68);
-      image-rendering: pixelated;
-    }
+      .meal-overlay{
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        background: rgba(0,0,0,0.68);
+        image-rendering: pixelated;
+      }
 
-    /* =========================
-       MINECRAFT UI THEME
-       ========================= */
-    .mc-ui{
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
-      image-rendering: pixelated;
-    }
+      body.meal-lock{ overflow: hidden !important; }
 
-    /* A subtle "pixel grid" texture using gradients (no images needed) */
-    .mc-ui{
-      --mc-border-dark: #1f1f1f;
-      --mc-border-mid: #3a3a3a;
-      --mc-border-light: #bfbfbf;
-      --mc-panel: #d9d9d9;
-      --mc-panel-2: #cfcfcf;
-      --mc-accent: #3dbb4a;
-      --mc-accent-2: #2a8b35;
-      --mc-danger: #d64545;
-      --mc-text: #111;
-    }
+      .mc-ui{
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+        image-rendering: pixelated;
 
-    .meal-box{
-      position: relative;
-      z-index: 2001;
+        --mc-border-dark: #1f1f1f;
+        --mc-border-mid: #3a3a3a;
+        --mc-border-light: #bfbfbf;
+        --mc-panel: #d9d9d9;
+        --mc-panel-2: #cfcfcf;
+        --mc-accent: #3dbb4a;
+        --mc-accent-2: #2a8b35;
+        --mc-text: #101010;
+      }
 
-      /* important: do NOT fixed center with transform, let it fit viewport */
-      margin: 18px auto;
-      width: min(920px, 96vw);
+      .meal-box{
+        position: relative;
+        z-index: 2001;
+        margin: 18px auto;
+        width: min(920px, 96vw);
 
-      /* scrollable layout */
-      max-height: calc(100vh - 36px);
-      display: flex;
-      flex-direction: column;
+        max-height: calc(100vh - 36px);
+        display: flex;
+        flex-direction: column;
 
-      background: var(--mc-panel);
-      border-radius: 6px;
+        background: var(--mc-panel);
+        border-radius: 6px;
+        border: 4px solid var(--mc-border-dark);
+        box-shadow:
+          0 0 0 2px var(--mc-border-mid),
+          0 0 0 4px var(--mc-border-light),
+          0 20px 70px rgba(0,0,0,0.45);
+        overflow: hidden;
+      }
 
-      /* chunky Minecraft-ish border */
-      border: 4px solid var(--mc-border-dark);
-      box-shadow:
-        0 0 0 2px var(--mc-border-mid),
-        0 0 0 4px var(--mc-border-light),
-        0 20px 70px rgba(0,0,0,0.45);
+      .meal-head{
+        padding: 14px 16px 12px;
+        background:
+          repeating-linear-gradient(
+            90deg,
+            rgba(0,0,0,0.05) 0,
+            rgba(0,0,0,0.05) 10px,
+            rgba(255,255,255,0.06) 10px,
+            rgba(255,255,255,0.06) 20px
+          ),
+          var(--mc-panel-2);
+        border-bottom: 4px solid var(--mc-border-dark);
+        box-shadow: inset 0 2px 0 rgba(255,255,255,0.35);
+      }
 
-      overflow: hidden;
-      animation: mcPop .14s ease-out;
-    }
+      .meal-badge{
+        font-weight: 1000;
+        font-size: 12px;
+        letter-spacing: .16em;
+        text-transform: uppercase;
+        color: rgba(0,0,0,0.78);
+        margin-bottom: 6px;
+      }
 
-    @keyframes mcPop{
-      from{ transform: translateY(6px); opacity: 0; }
-      to{ transform: translateY(0); opacity: 1; }
-    }
+      .meal-title{
+        margin: 0 0 4px;
+        font-size: 22px;
+        color: var(--mc-text);
+        font-weight: 1000;
+        text-shadow: 0 2px 0 rgba(255,255,255,0.35);
+      }
 
-    .meal-head{
-      padding: 14px 16px 12px;
-      background:
-        linear-gradient(0deg, rgba(0,0,0,0.06), rgba(0,0,0,0.06)),
-        repeating-linear-gradient(
-          90deg,
-          rgba(0,0,0,0.04) 0,
-          rgba(0,0,0,0.04) 8px,
-          rgba(255,255,255,0.04) 8px,
-          rgba(255,255,255,0.04) 16px
-        ),
-        var(--mc-panel-2);
-      border-bottom: 4px solid var(--mc-border-dark);
-      box-shadow: inset 0 2px 0 rgba(255,255,255,0.35);
-    }
+      .meal-subtitle{
+        margin: 0;
+        font-size: 12px;
+        font-weight: 900;
+        color: rgba(0,0,0,0.78);
+      }
 
-    .meal-badge{
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: 900;
-      font-size: 12px;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      color: rgba(0,0,0,0.75);
-      margin-bottom: 6px;
-    }
+      .meal-progress{
+        display:flex;
+        gap: 8px;
+        margin-top: 10px;
+      }
+      .meal-progress .dot{
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+        background: rgba(0,0,0,0.22);
+        box-shadow: inset 0 2px 0 rgba(255,255,255,0.25);
+      }
+      .meal-progress .dot.done{ background: rgba(61,187,74,0.55); }
+      .meal-progress .dot.active{ background: rgba(61,187,74,0.95); }
 
-    .meal-title{
-      margin: 0 0 4px;
-      font-size: 22px;
-      color: var(--mc-text);
-      font-weight: 1000;
-      text-shadow: 0 2px 0 rgba(255,255,255,0.35);
-    }
+      .meal-body{
+        padding: 14px 16px 10px;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+        flex: 1;
+        background:
+          radial-gradient(rgba(255,255,255,0.18) 1px, transparent 1px) 0 0/12px 12px,
+          #e7e7e7;
+      }
 
-    .meal-subtitle{
-      margin: 0;
-      font-size: 12px;
-      font-weight: 800;
-      color: rgba(0,0,0,0.75);
-    }
+      .meal-footer{
+        display:flex;
+        align-items:center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-top: 4px solid var(--mc-border-dark);
+        background: var(--mc-panel-2);
+      }
 
-    .meal-progress{
-      display: flex;
-      gap: 8px;
-      margin-top: 10px;
-    }
-    .meal-progress .dot{
-      width: 10px;
-      height: 10px;
-      border-radius: 2px;
-      background: rgba(0,0,0,0.18);
-      box-shadow: inset 0 2px 0 rgba(255,255,255,0.25);
-    }
-    .meal-progress .dot.done{
-      background: rgba(61,187,74,0.55);
-    }
-    .meal-progress .dot.active{
-      background: rgba(61,187,74,0.95);
-    }
+      .meal-summary{
+        flex: 1;
+        min-height: 34px;
+        display:flex;
+        align-items:center;
+        gap: 6px;
+        flex-wrap: wrap;
+        padding: 4px 6px;
+      }
 
-    /* =========================
-       SCROLLABLE CONTENT AREA
-       ========================= */
-    .meal-body{
-      padding: 14px 16px 10px;
-      overflow: auto;                /* <--- THIS IS THE BIG FIX */
-      -webkit-overflow-scrolling: touch;
-      flex: 1;                       /* <--- allow it to take remaining height */
-      background:
-        radial-gradient(rgba(255,255,255,0.24) 1px, transparent 1px) 0 0/12px 12px,
-        #e7e7e7;
-    }
+      .pill{
+        border-radius: 4px;
+        padding: 6px 10px;
+        background: rgba(255,255,255,0.55);
+        border: 2px solid rgba(0,0,0,0.20);
+        font-weight: 1000;
+        font-size: 12px;
+        color: rgba(0,0,0,0.88);
+      }
+      .hint{
+        color: rgba(0,0,0,0.75);
+        font-size: 12px;
+        font-weight: 1000;
+      }
 
-    /* Footer stays pinned while body scrolls */
-    .meal-footer{
-      display:flex;
-      align-items:center;
-      gap: 10px;
-      padding: 10px 12px;
-      border-top: 4px solid var(--mc-border-dark);
-      background: var(--mc-panel-2);
-    }
+      .meal-btn{
+        padding: 10px 12px;
+        border-radius: 4px;
+        border: 3px solid var(--mc-border-dark);
+        cursor: pointer;
+        font-weight: 1000;
+        letter-spacing: .2px;
+        user-select: none;
+        box-shadow: inset 0 2px 0 rgba(255,255,255,0.25);
+        transition: transform .06s ease, filter .12s ease;
+        color: #111;
+        white-space: nowrap;
+      }
+      .meal-btn:active{ transform: translateY(1px); }
+      .meal-btn:disabled{ opacity: .55; cursor: not-allowed; }
 
-    .meal-summary{
-      flex: 1;
-      min-height: 34px;
-      display:flex;
-      align-items:center;
-      gap: 6px;
-      flex-wrap: wrap;
-      padding: 4px 6px;
-    }
+      .meal-btn.primary{
+        background: linear-gradient(#4ad35a, #2a8b35);
+        color: #071409;
+      }
+      .meal-btn.ghost{
+        background: linear-gradient(#f2f2f2, #cfcfcf);
+        color: #111;
+      }
+      .meal-btn.inline{ margin-top: 10px; }
 
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      border-radius: 4px;
-      padding: 6px 10px;
-      background: rgba(0,0,0,0.06);
-      border: 2px solid rgba(0,0,0,0.15);
-      font-weight: 900;
-      font-size: 12px;
-      color: rgba(0,0,0,0.8);
-    }
+      .step-title{
+        margin: 0 0 6px;
+        font-size: 18px;
+        color: #111;
+        font-weight: 1000;
+      }
+      .step-sub{
+        margin: 0 0 12px;
+        font-size: 12px;
+        font-weight: 900;
+        color: rgba(0,0,0,0.80);
+      }
 
-    .hint{
-      color: rgba(0,0,0,0.7);
-      font-size: 12px;
-      font-weight: 900;
-    }
+      .choice-grid{
+        display:grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+      }
 
-    /* =========================
-       Minecraft Buttons
-       ========================= */
-    .meal-btn{
-      padding: 10px 12px;
-      border-radius: 4px;
-      border: 3px solid var(--mc-border-dark);
-      cursor: pointer;
-      font-weight: 1000;
-      letter-spacing: .2px;
-      user-select: none;
-      box-shadow: inset 0 2px 0 rgba(255,255,255,0.25);
-      transition: transform .06s ease, filter .12s ease;
-    }
-    .meal-btn:active{ transform: translateY(1px); }
-    .meal-btn:disabled{ opacity: .55; cursor: not-allowed; }
+      .choice-card{
+        border: 3px solid var(--mc-border-dark);
+        background: linear-gradient(#f7f7f7, #dcdcdc);
+        border-radius: 6px;
+        padding: 10px;
+        cursor: pointer;
+        text-align:left;
+        box-shadow: inset 0 2px 0 rgba(255,255,255,0.22);
+      }
+      .choice-card.active{
+        outline: 3px solid rgba(61,187,74,0.85);
+        outline-offset: 2px;
+      }
 
-    .meal-btn.primary{
-      background: linear-gradient(#4ad35a, #2a8b35);
-      color: #0b1a0e;
-    }
+      .choice-top{
+        display:flex;
+        align-items:center;
+        gap: 10px;
+        margin-bottom: 6px;
+      }
 
-    .meal-btn.ghost{
-      background: linear-gradient(#f2f2f2, #cfcfcf);
-      color: #111;
-    }
+      .choice-icon{
+        width: 16px;
+        height: 16px;
+        border-radius: 2px;
+        border: 2px solid rgba(0,0,0,0.35);
+        box-shadow: inset 0 2px 0 rgba(255,255,255,0.2);
+      }
 
-    .meal-btn.danger{
-      background: linear-gradient(#ff6b6b, #c0392b);
-      color: #1a0707;
-    }
+      .choice-emoji{
+        width: 26px;
+        height: 26px;
+        border-radius: 4px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        background: rgba(255,255,255,0.55);
+        border: 2px solid rgba(0,0,0,0.2);
+        font-weight: 1000;
+        color: #111;
+      }
 
-    /* =========================
-       Cards / Grid (pixel-ish)
-       ========================= */
-    .choice-grid{
-      display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
-    }
+      .choice-name{
+        font-weight: 1000;
+        color: #111;
+      }
+      .choice-meta{
+        font-size: 12px;
+        color: rgba(0,0,0,0.78);
+        font-weight: 1000;
+      }
 
-    .choice-card{
-      border: 3px solid var(--mc-border-dark);
-      background: linear-gradient(#f7f7f7, #dcdcdc);
-      border-radius: 6px;
-      padding: 10px;
-      cursor: pointer;
-      text-align:left;
-      box-shadow: inset 0 2px 0 rgba(255,255,255,0.22);
-      transition: transform .1s ease, filter .12s ease;
-    }
-    .choice-card:hover{ filter: brightness(1.03); }
-    .choice-card:active{ transform: translateY(1px); }
-    .choice-card.active{
-      outline: 3px solid rgba(61,187,74,0.8);
-      outline-offset: 2px;
-    }
+      .search-wrap{ margin-bottom: 10px; }
+      .meal-input{
+        width: 100%;
+        border: 3px solid var(--mc-border-dark);
+        border-radius: 6px;
+        padding: 10px 10px;
+        outline: none;
+        font-weight: 1000;
+        background: #f4f4f4;
+        color: #111;
+      }
+      .meal-input::placeholder{ color: rgba(0,0,0,0.55); }
 
-    .choice-top{
-      display:flex;
-      align-items:center;
-      gap: 10px;
-      margin-bottom: 6px;
-    }
+      .food-grid{
+        display:grid;
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        gap: 12px;
+      }
 
-    .choice-icon{
-      width: 16px;
-      height: 16px;
-      border-radius: 2px;
-      border: 2px solid rgba(0,0,0,0.35);
-      box-shadow: inset 0 2px 0 rgba(255,255,255,0.2);
-    }
+      .food-card{
+        border: 3px solid var(--mc-border-dark);
+        background: linear-gradient(#f7f7f7, #dcdcdc);
+        border-radius: 6px;
+        padding: 10px;
+        cursor: pointer;
+        text-align:left;
+        box-shadow: inset 0 2px 0 rgba(255,255,255,0.22);
+      }
+      .food-card.active{
+        outline: 3px solid rgba(61,187,74,0.85);
+        outline-offset: 2px;
+      }
 
-    .choice-emoji{
-      width: 26px;
-      height: 26px;
-      border-radius: 4px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background: rgba(0,0,0,0.06);
-      border: 2px solid rgba(0,0,0,0.2);
-      font-weight: 1000;
-    }
+      .food-card img{
+        width: 100%;
+        height: 130px;
+        object-fit: cover;
+        border-radius: 4px;
+        display:block;
+        border: 2px solid rgba(0,0,0,0.25);
+        background: #fff;
+      }
 
-    .choice-name{
-      font-weight: 1000;
-      color: #111;
-    }
-    .choice-meta{
-      font-size: 12px;
-      color: rgba(0,0,0,0.75);
-      font-weight: 900;
-    }
+      .food-name{
+        margin-top: 8px;
+        font-weight: 1000;
+        color: #111;
+        font-size: 13px;
+      }
+      .food-meta{
+        margin-top: 4px;
+        font-size: 12px;
+        font-weight: 1000;
+        color: rgba(0,0,0,0.72);
+      }
 
-    .search-wrap{ margin-bottom: 10px; }
-    .meal-input{
-      width: 100%;
-      border: 3px solid var(--mc-border-dark);
-      border-radius: 6px;
-      padding: 10px 10px;
-      outline: none;
-      font-weight: 900;
-      background: #f4f4f4;
-    }
-    .meal-input:focus{
-      box-shadow: 0 0 0 3px rgba(61,187,74,0.22);
-    }
+      .empty{
+        grid-column: 1 / -1;
+        padding: 12px;
+        border-radius: 6px;
+        border: 3px dashed rgba(0,0,0,0.35);
+        background: rgba(255,255,255,0.55);
+        font-weight: 1000;
+        color: rgba(0,0,0,0.85);
+      }
 
-    .food-grid{
-      display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-      gap: 12px;
-    }
+      /* Cart UI */
+      .cart-bar{
+        display:flex;
+        align-items:center;
+        justify-content: space-between;
+        gap: 10px;
+        margin: 10px 0 8px;
+        padding: 10px;
+        border-radius: 6px;
+        border: 3px solid var(--mc-border-dark);
+        background: rgba(255,255,255,0.60);
+      }
+      .cart-title{
+        font-weight: 1000;
+        color:#111;
+        margin-bottom: 2px;
+      }
+      .cart-sub{
+        font-weight: 1000;
+        font-size: 12px;
+        color: rgba(0,0,0,0.75);
+      }
+      .cart-clear{
+        padding: 8px 10px;
+      }
+      .cart-chips{
+        display:flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .cart-chip{
+        display:flex;
+        align-items:center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px;
+        border-radius: 6px;
+        border: 3px solid var(--mc-border-dark);
+        background: rgba(255,255,255,0.70);
+      }
+      .chip-name{
+        flex: 1;
+        font-weight: 1000;
+        color:#111;
+      }
+      .qty{
+        display:flex;
+        align-items:center;
+        gap: 6px;
+      }
+      .qty-btn{
+        border: 3px solid var(--mc-border-dark);
+        border-radius: 6px;
+        background: linear-gradient(#f2f2f2, #cfcfcf);
+        font-weight: 1000;
+        padding: 6px 10px;
+        cursor: pointer;
+      }
+      .qty-num{
+        min-width: 18px;
+        text-align:center;
+        font-weight: 1000;
+        color:#111;
+      }
+      .chip-x{
+        border: 3px solid var(--mc-border-dark);
+        border-radius: 6px;
+        background: linear-gradient(#f7f7f7, #dcdcdc);
+        font-weight: 1000;
+        padding: 6px 10px;
+        cursor: pointer;
+      }
 
-    .food-card{
-      border: 3px solid var(--mc-border-dark);
-      background: linear-gradient(#f7f7f7, #dcdcdc);
-      border-radius: 6px;
-      padding: 10px;
-      cursor: pointer;
-      text-align:left;
-      box-shadow: inset 0 2px 0 rgba(255,255,255,0.22);
-      transition: transform .1s ease, filter .12s ease;
-    }
-    .food-card:hover{ filter: brightness(1.03); }
-    .food-card:active{ transform: translateY(1px); }
-    .food-card.active{
-      outline: 3px solid rgba(61,187,74,0.8);
-      outline-offset: 2px;
-    }
+      .stars-wrap{
+        display:flex;
+        flex-direction: column;
+        align-items:center;
+        gap: 6px;
+        padding: 8px 0 0;
+      }
+      .stars{
+        display:flex;
+        gap: 8px;
+      }
+      .star-btn{
+        border: 0;
+        background: transparent;
+        cursor: pointer;
+        font-size: 30px;
+        line-height: 1;
+        font-weight: 1000;
+        color: rgba(255, 215, 0, 0.95);
+        text-shadow: 0 3px 0 rgba(0,0,0,0.25);
+      }
+      .stars-label{
+        font-weight: 1000;
+        color: rgba(0,0,0,0.85);
+      }
 
-    .food-card img{
-      width: 100%;
-      height: 130px;
-      object-fit: cover;
-      border-radius: 4px;
-      display:block;
-      border: 2px solid rgba(0,0,0,0.25);
-      image-rendering: pixelated;
-      background: #fff;
-    }
+      .mc-panel{
+        border: 3px solid var(--mc-border-dark);
+        border-radius: 6px;
+        background: rgba(255,255,255,0.60);
+        padding: 10px;
+      }
+      .mc-row{
+        display:flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px 6px;
+        border-bottom: 2px dashed rgba(0,0,0,0.18);
+      }
+      .mc-row:last-child{ border-bottom: 0; }
 
-    .food-name{
-      margin-top: 8px;
-      font-weight: 1000;
-      color: #111;
-      font-size: 13px;
-    }
+      .mc-row span{
+        font-weight: 1000;
+        color: rgba(0,0,0,0.78);
+      }
+      .mc-row strong{
+        font-weight: 1000;
+        color: rgba(0,0,0,0.92);
+      }
+      .stars-strong{
+        letter-spacing: 1px;
+        color: rgba(255, 215, 0, 0.95);
+        text-shadow: 0 3px 0 rgba(0,0,0,0.25);
+      }
 
-    .empty{
-      grid-column: 1 / -1;
-      padding: 12px;
-      border-radius: 6px;
-      border: 3px dashed rgba(0,0,0,0.35);
-      background: rgba(255,255,255,0.55);
-      font-weight: 900;
-      color: rgba(0,0,0,0.8);
-    }
+      .tiny-note{
+        margin-top: 12px;
+        font-size: 12px;
+        font-weight: 1000;
+        color: rgba(0,0,0,0.85);
+      }
 
-    /* Stars */
-    .stars-wrap{
-      display:flex;
-      flex-direction: column;
-      align-items:center;
-      gap: 6px;
-      padding: 8px 0 0;
-    }
-    .stars{
-      display:flex;
-      gap: 8px;
-    }
-    .star-btn{
-      border: 0;
-      background: transparent;
-      cursor: pointer;
-      font-size: 30px;
-      line-height: 1;
-      font-weight: 1000;
-      color: rgba(255, 215, 0, 0.95);
-      text-shadow: 0 3px 0 rgba(0,0,0,0.25);
-    }
-    .stars-label{
-      font-weight: 1000;
-      color: rgba(0,0,0,0.78);
-    }
+      .final-wrap{
+        padding: 8px 6px 4px;
+        text-align:center;
+        color: #111;
+      }
+      .final-title{
+        font-size: 20px;
+        font-weight: 1000;
+        margin-bottom: 8px;
+      }
+      .final-line{
+        font-weight: 1000;
+        color: rgba(0,0,0,0.85);
+        margin: 6px 0;
+      }
+      .final-line span{ color: rgba(0,0,0,0.75); }
 
-    /* star pop effect */
-    .pop-star{
-      position:absolute;
-      z-index: 2002;
-      color: rgba(255,255,255,0.95);
-      text-shadow: 0 4px 0 rgba(0,0,0,0.3);
-      animation: popStar 900ms ease forwards;
-      pointer-events:none;
-      font-size: 18px;
-    }
-    @keyframes popStar{
-      0%{ opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
-      20%{ opacity: 1; }
-      100%{ opacity: 0; transform: translate(-50%, -120%) scale(1.4); }
-    }
+      .final-list{
+        margin: 8px auto 10px;
+        padding: 10px;
+        border-radius: 6px;
+        border: 3px solid var(--mc-border-dark);
+        background: rgba(255,255,255,0.70);
+        max-width: 720px;
+        font-weight: 1000;
+        color: rgba(0,0,0,0.88);
+        word-wrap: break-word;
+      }
 
-    .hidden{ display:none !important; }
+      .final-stars{
+        font-size: 28px;
+        font-weight: 1000;
+        margin: 12px 0 10px;
+        color: rgba(255, 215, 0, 0.95);
+        text-shadow: 0 3px 0 rgba(0,0,0,0.25);
+      }
 
-    /* Make sure page behind doesn't scroll while modal open */
-    body.meal-lock{
-      overflow: hidden !important;
-    }
-  `;
-  document.head.appendChild(style);
-}
+      .pop-star{
+        position:absolute;
+        z-index: 2002;
+        color: rgba(255,255,255,0.95);
+        text-shadow: 0 4px 0 rgba(0,0,0,0.3);
+        animation: popStar 900ms ease forwards;
+        pointer-events:none;
+        font-size: 18px;
+      }
+      @keyframes popStar{
+        0%{ opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+        20%{ opacity: 1; }
+        100%{ opacity: 0; transform: translate(-50%, -120%) scale(1.4); }
+      }
 
+      .hidden{ display:none !important; }
+    `;
+    document.head.appendChild(style);
+  }
 
   // -----------------------------
-  // 8) HELPERS
+  // 9) HELPERS
   // -----------------------------
   function escapeHtml(str) {
     return String(str)
@@ -1203,8 +1407,7 @@
   }
 
   function lighten(hex, amt) {
-    // hex like "#rrggbb"
-    const c = hex.replace("#", "");
+    const c = String(hex || "").replace("#", "");
     if (c.length !== 6) return hex;
     const r = parseInt(c.slice(0, 2), 16);
     const g = parseInt(c.slice(2, 4), 16);
@@ -1225,16 +1428,66 @@
     ctx.arcTo(x, y, x + w, y, rr);
     ctx.closePath();
   }
+})();
 
-  function waveRect(ctx, x, y, w, h, wave) {
-    ctx.beginPath();
-    ctx.moveTo(x, y + h);
-    for (let i = 0; i <= w; i += 8) {
-      ctx.lineTo(x + i, y + h - (Math.sin(i / 10) * wave));
+/* =====================================
+   GIFT REVEAL LOGIC
+===================================== */
+
+(function() {
+  const seeStarsBtn = document.querySelector("#seeStarsBtn"); // make sure id matches
+  const giftStage = document.getElementById("giftStage");
+  const giftBox = document.getElementById("giftBox");
+  const flowerReveal = document.getElementById("flowerReveal");
+
+  if (!giftBox) return;
+
+  let clickCount = 0;
+  const requiredClicks = 6;
+
+  // When she clicks "See the stars"
+  if (seeStarsBtn) {
+    seeStarsBtn.addEventListener("click", () => {
+      giftStage.classList.remove("hidden");
+      seeStarsBtn.style.display = "none";
+    });
+  }
+
+  giftBox.addEventListener("click", () => {
+    if (giftBox.classList.contains("open")) return;
+
+    clickCount++;
+
+    giftBox.classList.add("shake");
+    setTimeout(() => giftBox.classList.remove("shake"), 250);
+
+    if (clickCount >= requiredClicks) {
+      openGift();
     }
-    ctx.lineTo(x + w, y);
-    ctx.lineTo(x, y);
-    ctx.closePath();
-    ctx.fill();
+  });
+
+  function openGift() {
+    giftBox.classList.add("open");
+
+    setTimeout(() => {
+      flowerReveal.classList.remove("hidden");
+      createFlowers();
+    }, 600);
+  }
+
+  function createFlowers() {
+    flowerReveal.innerHTML = "";
+
+    for (let i = 0; i < 5; i++) {
+      const flower = document.createElement("div");
+      flower.className = "flower";
+
+      flower.innerHTML = `
+        <div class="flower-head"></div>
+        <div class="flower-stem"></div>
+      `;
+
+      flowerReveal.appendChild(flower);
+    }
   }
 })();
