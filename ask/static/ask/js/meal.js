@@ -3,6 +3,7 @@
    ROMANTIC MEAL QUEST 🌹
    Generates PNG food images dynamically using canvas
    - Opens via button OR via CustomEvent("openMealQuest")
+   - FIXED: z-index so modal always appears above book UI
    ============================================================ */
 
 (() => {
@@ -77,13 +78,14 @@
 
     modal.querySelector(".meal-overlay").addEventListener("click", () => modal.remove());
 
-    window.addEventListener("keydown", function esc(e){
+    const escHandler = (e) => {
       if (e.key === "Escape") {
         const m = document.getElementById("mealModal");
         if (m) m.remove();
-        window.removeEventListener("keydown", esc);
+        window.removeEventListener("keydown", escHandler);
       }
-    });
+    };
+    window.addEventListener("keydown", escHandler);
   }
 
   function renderTabs() {
@@ -209,15 +211,24 @@
     const style = document.createElement("style");
     style.id = "mealQuestStyles";
     style.textContent = `
+      /* FIX: ensure modal is always above the book UI */
+      #mealModal{
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+      }
+
       .meal-overlay{
         position: fixed;
         inset: 0;
+        z-index: 2000;
         background: rgba(0,0,0,0.62);
         backdrop-filter: blur(4px);
       }
 
       .meal-box{
         position: fixed;
+        z-index: 2001;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
