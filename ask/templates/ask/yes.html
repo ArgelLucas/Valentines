@@ -287,11 +287,47 @@
       .mc-pages{ grid-template-columns: 1fr; }
       .mc-binding{ display:none; }
     }
+    .quest-toast{
+      position: fixed;
+      left: 50%;
+      top: 16px;
+      transform: translateX(-50%);
+      z-index: 50;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 2px solid rgba(0,0,0,.55);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.62), rgba(0,0,0,.10)),
+        rgba(255, 210, 225, .55);
+      box-shadow: 0 12px 30px rgba(0,0,0,.25);
+      font: 700 12px/1.2 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      color: rgba(0,0,0,.85);
+      letter-spacing: .2px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s ease, transform .25s ease;
+    }
+    .quest-toast.show{
+      opacity: 1;
+      transform: translateX(-50%) translateY(2px);
+    }
+
+    /* ---------- Tiny helper line on page 2 ---------- */
+    .mc-softline{
+      margin: 8px 0 0;
+      font-size: 12px;
+      color: rgba(0,0,0,.62);
+    }
   </style>
 </head>
 
 <body class="alt-page">
   <canvas id="bg" aria-hidden="true"></canvas>
+
+  <!-- Quest toast (hidden until sign) -->
+  <div class="quest-toast" id="questToast" aria-live="polite">
+    Quest Updated: Choose our meal date 💗
+  </div>
 
   <main class="stage">
     <section class="mc-book-wrap" aria-label="Minecraft Book and Quill">
@@ -334,10 +370,17 @@
             <div class="mc-lines">
               <p class="mc-hint">Preview:</p>
               <div id="letterPreview" class="mc-preview" aria-live="polite"></div>
+              <p class="mc-softline" id="afterSignLine" style="display:none;">
+                Now pick our meal so I can officially plan our date. ✨
+              </p>
             </div>
 
             <div class="mc-page-footer">
               <button class="mc-btn secondary" id="clearBtn" type="button">Clear</button>
+              <!-- NEW: meal button -->
+              <button class="mc-btn primary" id="openMealBtn" type="button" style="display:none;">
+                Choose Meal
+              </button>
               <a class="mc-btn secondary" href="{% url 'home' %}">Back</a>
             </div>
           </div>
@@ -348,6 +391,7 @@
   </main>
 
   <script src="{% static 'ask/js/app.js' %}"></script>
+  <script src="{% static 'ask/js/meal.js' %}"></script>
 
   <script>
     (function(){
@@ -356,15 +400,36 @@
       const signBtn = document.getElementById("signBtn");
       const clearBtn = document.getElementById("clearBtn");
 
+      const openMealBtn = document.getElementById("openMealBtn");
+      const afterSignLine = document.getElementById("afterSignLine");
+      const questToast = document.getElementById("questToast");
+
       const render = () => { preview.textContent = input.value || ""; };
       input.addEventListener("input", render);
       render();
+
+      function showToast(msg){
+        if (msg) questToast.textContent = msg;
+        questToast.classList.add("show");
+        window.setTimeout(() => questToast.classList.remove("show"), 1800);
+      }
 
       signBtn.addEventListener("click", () => {
         input.blur();
         signBtn.textContent = "Signed";
         signBtn.disabled = true;
         signBtn.style.opacity = "0.85";
+
+        // Reveal meal step
+        openMealBtn.style.display = "inline-flex";
+        afterSignLine.style.display = "block";
+
+        // Quest toast + auto-open meal modal
+        showToast("Quest Updated: Choose our meal date 💗");
+        window.setTimeout(() => {
+          // meal.js will listen to this (see tiny hook below)
+          window.dispatchEvent(new CustomEvent("openMealQuest"));
+        }, 650);
       });
 
       clearBtn.addEventListener("click", () => {
@@ -372,9 +437,16 @@
         render();
         signBtn.disabled = false;
         signBtn.textContent = "Sign";
+        openMealBtn.style.display = "none";
+        afterSignLine.style.display = "none";
         input.focus();
       });
     })();
   </script>
+  window.addEventListener("openMealQuest", () => {
+  // open immediately even if button isn’t clicked
+  openMealModal();
+});
 </body>
 </html>
+

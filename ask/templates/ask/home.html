@@ -19,17 +19,17 @@
       <span class="hud-hearts">■■■■■■■■■■</span>
     </div>
     <div class="hud-row">
-      <span class="hud-label">Status</span>
-      <span class="hud-text" id="hudText">Peaceful</span>
+      <span class="hud-label">Quest</span>
+      <span class="hud-text" id="hudText">Ask → Letter → Meal Date</span>
     </div>
   </div>
 
   <main class="stage">
     <section class="card" id="card" role="dialog" aria-label="Valentine question">
-      <div class="pill">⛏️ Crafting: Valentine Request</div>
+      <div class="pill">⛏️ Quest Started: Valentine Request</div>
 
       <h1 class="title">Will you be my Valentine?</h1>
-      <p class="subtitle">Creative mode only. No fall damage. Just vibes.</p>
+      <p class="subtitle">If you say YES, you’ll unlock a letter… and our meal date. ✨</p>
 
       <div class="actions" id="actions">
         <!-- IMPORTANT: data-yes-url tells JS where to redirect -->
@@ -43,7 +43,7 @@
         </button>
       </div>
 
-      <p class="hint" id="hint">Tip: try to hit “NO”… if you can.</p>
+      <p class="hint" id="hint">Tip: try to hit “NO”… if you can. (I made it hard on purpose.)</p>
     </section>
 
     <!-- Success overlay (optional – will show briefly then redirect) -->
@@ -58,7 +58,7 @@
         </div>
 
         <h2>YAAAY!!</h2>
-        <p>Opening the book...</p>
+        <p>Opening the book &amp; quill...</p>
         <button class="btn btn-yes" id="againBtn" type="button">Replay</button>
       </div>
     </section>
