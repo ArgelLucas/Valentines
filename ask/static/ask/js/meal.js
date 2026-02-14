@@ -7,7 +7,12 @@
    - Modal body scrolls (footer pinned)
    - Better contrast (confirm text readable)
    - Food order uses "order" then A->Z
-   ============================================================ */
+   - FIXED: Final button triggers Gift Scene:
+       -> closes modal cleanly (removes ESC listener)
+       -> hides Book & Quill via startGiftScene
+       -> switches canvas to romantic gift mode via romanticNightOn
+   ============================================================
+*/
 
 (() => {
   // -----------------------------
@@ -18,7 +23,6 @@
       name: "Jollibee",
       theme: "#ff4d6d",
       foods: [
-        // Chickenjoy / mains
         { name: "Chickenjoy (1pc)", tone: "#d35400", kind: "fried", order: 1 },
         { name: "Chickenjoy (2pc)", tone: "#d35400", kind: "fried", order: 2 },
         { name: "Chickenjoy (Bucket)", tone: "#d35400", kind: "fried", order: 3 },
@@ -28,27 +32,17 @@
         { name: "Jolly Hotdog", tone: "#e74c3c", kind: "hotdog", order: 7 },
         { name: "Burger Steak (1pc)", tone: "#8e5c2c", kind: "steak", order: 8 },
         { name: "Burger Steak (2pc)", tone: "#8e5c2c", kind: "steak", order: 9 },
-
-        // Pasta / noodles
         { name: "Jolly Spaghetti", tone: "#e74c3c", kind: "pasta", order: 10 },
         { name: "Palabok Fiesta", tone: "#c0392b", kind: "noodles", order: 11 },
-
-        // Sides / add-ons
         { name: "Rice", tone: "#f4d03f", kind: "rice", order: 12 },
         { name: "Fries", tone: "#f39c12", kind: "fries", order: 13 },
         { name: "Mashed Potato", tone: "#f5cba7", kind: "side", order: 14 },
-
-        // Desserts
         { name: "Peach Mango Pie", tone: "#f5b041", kind: "dessert", order: 15 },
         { name: "Sundae", tone: "#af7ac5", kind: "dessert", order: 16 },
-
-        // Drinks
         { name: "Coke", tone: "#cb4335", kind: "drink", order: 17 },
         { name: "Sprite", tone: "#2ecc71", kind: "drink", order: 18 },
         { name: "Iced Tea", tone: "#5dade2", kind: "drink", order: 19 },
         { name: "Pineapple Juice", tone: "#f7dc6f", kind: "drink", order: 20 },
-
-        // Breakfast (extra)
         { name: "Breakfast: Longganisa", tone: "#b03a2e", kind: "breakfast", order: 30 },
         { name: "Breakfast: Tapa", tone: "#6e2c00", kind: "breakfast", order: 31 }
       ]
@@ -58,32 +52,21 @@
       name: "McDonald's",
       theme: "#f1c40f",
       foods: [
-        // Burgers
         { name: "Big Mac", tone: "#f1c40f", kind: "burger", order: 1 },
         { name: "Quarter Pounder", tone: "#d35400", kind: "burger", order: 2 },
         { name: "McChicken", tone: "#f39c12", kind: "burger", order: 3 },
         { name: "Cheeseburger", tone: "#f4d03f", kind: "burger", order: 4 },
         { name: "Chicken Sandwich", tone: "#e67e22", kind: "burger", order: 5 },
-
-        // Chicken
         { name: "McCrispy Chicken", tone: "#e67e22", kind: "fried", order: 6 },
         { name: "Chicken McNuggets (6pc)", tone: "#f39c12", kind: "fried", order: 7 },
         { name: "Chicken McNuggets (10pc)", tone: "#f39c12", kind: "fried", order: 8 },
-
-        // Sides
         { name: "Regular Fries", tone: "#f39c12", kind: "fries", order: 9 },
         { name: "BFF Fries", tone: "#f39c12", kind: "fries", order: 10 },
         { name: "Apple Slices", tone: "#85c1e9", kind: "side", order: 11 },
-
-        // Pasta
         { name: "McSpaghetti", tone: "#c0392b", kind: "pasta", order: 12 },
-
-        // Desserts
         { name: "Sundae", tone: "#af7ac5", kind: "dessert", order: 13 },
         { name: "Apple Pie", tone: "#f5b041", kind: "dessert", order: 14 },
         { name: "McFlurry", tone: "#af7ac5", kind: "dessert", order: 15 },
-
-        // Drinks
         { name: "Coke McFloat", tone: "#85c1e9", kind: "drink", order: 16 },
         { name: "Iced Coffee", tone: "#6e2c00", kind: "drink", order: 17 },
         { name: "Orange Juice", tone: "#f7dc6f", kind: "drink", order: 18 }
@@ -94,23 +77,16 @@
       name: "Mang Inasal",
       theme: "#27ae60",
       foods: [
-        // Mains
         { name: "PM1: Chicken Inasal (Pecho)", tone: "#a04000", kind: "grill", order: 1 },
         { name: "PM1: Chicken Inasal (Paa)", tone: "#935116", kind: "grill", order: 2 },
         { name: "Pork BBQ", tone: "#b03a2e", kind: "grill", order: 3 },
         { name: "Liempo", tone: "#6e2c00", kind: "grill", order: 4 },
         { name: "Pork Sisig", tone: "#8e5c2c", kind: "sisig", order: 5 },
         { name: "Bangus Sisig", tone: "#7f8c8d", kind: "sisig", order: 6 },
-
-        // Sides
         { name: "Extra Rice", tone: "#f4d03f", kind: "rice", order: 7 },
         { name: "Chicken Soup", tone: "#f7dc6f", kind: "soup", order: 8 },
-
-        // Desserts
         { name: "Halo-Halo", tone: "#af7ac5", kind: "dessert", order: 9 },
         { name: "Leche Flan", tone: "#f5cba7", kind: "dessert", order: 10 },
-
-        // Drinks
         { name: "Iced Tea", tone: "#5dade2", kind: "drink", order: 11 },
         { name: "Softdrink", tone: "#85c1e9", kind: "drink", order: 12 }
       ]
@@ -120,24 +96,15 @@
       name: "Chowking",
       theme: "#e74c3c",
       foods: [
-        // Rice / meals
         { name: "Chao Fan", tone: "#d68910", kind: "rice", order: 1 },
         { name: "Lauriat (Chicken)", tone: "#e67e22", kind: "meal", order: 2 },
         { name: "Sweet & Sour Pork", tone: "#cb4335", kind: "pork", order: 3 },
-
-        // Noodles / soup
         { name: "Beef Wanton Mami", tone: "#a04000", kind: "noodles", order: 4 },
         { name: "La Paz Batchoy", tone: "#8e5c2c", kind: "noodles", order: 5 },
-
-        // Dimsum
         { name: "Siomai", tone: "#f0b27a", kind: "dimsum", order: 6 },
         { name: "Siopao", tone: "#f5cba7", kind: "bun", order: 7 },
-
-        // Desserts
         { name: "Halo-Halo", tone: "#af7ac5", kind: "dessert", order: 8 },
         { name: "Buchi", tone: "#f5b041", kind: "dessert", order: 9 },
-
-        // Drinks
         { name: "Milk Tea", tone: "#d2b48c", kind: "drink", order: 10 },
         { name: "Iced Tea", tone: "#5dade2", kind: "drink", order: 11 }
       ]
@@ -145,16 +112,16 @@
   };
 
   const afterPlaces = [
-    { name: "Coffee shop ☕", vibe: "cozy" },
-    { name: "Dessert place 🍰", vibe: "sweet" },
-    { name: "Walk at the park 🌿", vibe: "breezy" },
-    { name: "Arcade / games 🎮", vibe: "playful" },
-    { name: "Mall stroll 🛍️", vibe: "chill" },
-    { name: "Sunset spot 🌅", vibe: "romantic" },
-    { name: "Photo booth 📸", vibe: "cute" },
-    { name: "Bookstore 📚", vibe: "quiet" },
-    { name: "Milk tea stop 🧋", vibe: "sweet" },
-    { name: "Ice cream 🍦", vibe: "classic" }
+    { name: "Coffee shop", vibe: "cozy" },
+    { name: "Dessert place", vibe: "sweet" },
+    { name: "Walk at the park", vibe: "breezy" },
+    { name: "Arcade / games", vibe: "playful" },
+    { name: "Mall stroll", vibe: "chill" },
+    { name: "Sunset spot", vibe: "romantic" },
+    { name: "Photo booth", vibe: "cute" },
+    { name: "Bookstore", vibe: "quiet" },
+    { name: "Milk tea stop", vibe: "sweet" },
+    { name: "Ice cream", vibe: "classic" }
   ];
 
   // -----------------------------
@@ -164,13 +131,13 @@
     step: 1,
     restaurantKey: null,
     restaurantName: null,
-
-    // NEW: cart of items instead of one food
     cart: {}, // { [foodName]: { name, qty } }
-
     afterPlace: null,
     stars: 5
   };
+
+  // keep a reference so we can remove ESC listener even if we close from “gift” button
+  let escHandler = null;
 
   document.addEventListener("DOMContentLoaded", () => {
     const openBtn = document.getElementById("openMealBtn");
@@ -178,6 +145,14 @@
   });
 
   window.addEventListener("openMealQuest", () => openMealModal());
+
+  function closeMealModalClean() {
+    const m = document.getElementById("mealModal");
+    if (m) m.remove();
+    document.body.classList.remove("meal-lock");
+    if (escHandler) window.removeEventListener("keydown", escHandler);
+    escHandler = null;
+  }
 
   function openMealModal() {
     if (document.getElementById("mealModal")) return;
@@ -216,13 +191,16 @@
     document.body.classList.add("meal-lock");
     injectStyles();
 
-    modal.querySelector(".meal-overlay").addEventListener("click", () => closeMealModal());
-    window.addEventListener("keydown", escClose);
+    modal.querySelector(".meal-overlay").addEventListener("click", closeMealModalClean);
+
+    escHandler = (e) => {
+      if (e.key === "Escape") closeMealModalClean();
+    };
+    window.addEventListener("keydown", escHandler);
 
     modal.querySelector("#mealBack").addEventListener("click", onBack);
     modal.querySelector("#mealNext").addEventListener("click", onNext);
 
-    // reset state
     state.step = 1;
     state.restaurantKey = null;
     state.restaurantName = null;
@@ -231,17 +209,6 @@
     state.stars = 5;
 
     render();
-
-    function escClose(e) {
-      if (e.key === "Escape") closeMealModal();
-    }
-
-    function closeMealModal() {
-      const m = document.getElementById("mealModal");
-      if (m) m.remove();
-      document.body.classList.remove("meal-lock");
-      window.removeEventListener("keydown", escClose);
-    }
   }
 
   // -----------------------------
@@ -258,7 +225,7 @@
     body.innerHTML = "";
 
     if (state.step === 1) renderRestaurantStep(body);
-    if (state.step === 2) renderFoodStep(body);        // now: build order
+    if (state.step === 2) renderFoodStep(body);
     if (state.step === 3) renderAfterPlaceStep(body);
     if (state.step === 4) renderStarsStep(body);
     if (state.step === 5) renderConfirmStep(body);
@@ -282,7 +249,7 @@
 
     let ok = true;
     if (state.step === 1) ok = !!state.restaurantKey;
-    if (state.step === 2) ok = cartCount() > 0; // NEW
+    if (state.step === 2) ok = cartCount() > 0;
     if (state.step === 3) ok = !!state.afterPlace;
     if (state.step === 4) ok = typeof state.stars === "number" && state.stars >= 1;
 
@@ -318,7 +285,7 @@
       return;
     }
 
-    // Seal
+    // Seal: show final summary + Gift button
     const modal = document.getElementById("mealModal");
     if (!modal) return;
 
@@ -336,29 +303,33 @@
 
         <div class="final-line"><span>After:</span> <strong>${escapeHtml(state.afterPlace)}</strong></div>
 
-        <div class="final-stars" id="finalStars">${starText(state.stars)}</div>
+        <div class="final-stars">${starText(state.stars)}</div>
 
-        <button class="meal-btn ghost inline" id="showStarsBtn" type="button">See the stars</button>
-        <button class="meal-btn primary inline" id="closeMeal" type="button">Close</button>
+        <button class="meal-btn primary inline" id="giftBtn" type="button">This is my gift for you</button>
+        <button class="meal-btn ghost inline" id="closeMeal" type="button">Close</button>
       </div>
     `;
 
     if (footer) footer.classList.add("hidden");
 
-    const showStarsBtn = document.getElementById("showStarsBtn");
-    if (showStarsBtn) showStarsBtn.addEventListener("click", () => popStars(26));
-
+    const giftBtn = document.getElementById("giftBtn");
     const closeBtn = document.getElementById("closeMeal");
+
+    if (giftBtn) {
+      giftBtn.addEventListener("click", () => {
+        // close modal cleanly
+        closeMealModalClean();
+
+        // tell app.js to switch to romantic gift background
+        window.dispatchEvent(new CustomEvent("romanticNightGift"));
+
+        // tiny sparkle feedback
+        popPageSparkle();
+      }, { once: true });
+    }
+
     if (closeBtn) {
-      closeBtn.addEventListener(
-        "click",
-        () => {
-          const m = document.getElementById("mealModal");
-          if (m) m.remove();
-          document.body.classList.remove("meal-lock");
-        },
-        { once: true }
-      );
+      closeBtn.addEventListener("click", closeMealModalClean, { once: true });
     }
   }
 
@@ -396,7 +367,6 @@
         state.restaurantKey = key;
         state.restaurantName = r.name;
 
-        // reset downstream
         state.cart = {};
         state.afterPlace = null;
         state.stars = 5;
@@ -503,13 +473,9 @@
 
     const toggleItem = (food) => {
       const key = food.name;
-      if (state.cart[key]) {
-        // remove
-        delete state.cart[key];
-      } else {
-        // add with qty 1
-        state.cart[key] = { name: food.name, qty: 1 };
-      }
+      if (state.cart[key]) delete state.cart[key];
+      else state.cart[key] = { name: food.name, qty: 1 };
+
       renderCart();
       updateFooterButtons();
       updateSummary();
@@ -537,7 +503,6 @@
 
           card.addEventListener("click", () => {
             toggleItem(food);
-            // update visuals fast
             renderList(input.value);
           });
 
@@ -684,11 +649,8 @@
   function orderText() {
     const items = Object.values(state.cart || {});
     if (!items.length) return "";
-    // keep stable order by name
     items.sort((a, b) => String(a.name).localeCompare(String(b.name)));
-    return items
-      .map((it) => (it.qty > 1 ? `${it.name} x${it.qty}` : it.name))
-      .join(", ");
+    return items.map((it) => (it.qty > 1 ? `${it.name} x${it.qty}` : it.name)).join(", ");
   }
 
   // -----------------------------
@@ -701,12 +663,10 @@
 
     const ctx = canvas.getContext("2d");
 
-    // background
     roundRect(ctx, 0, 0, canvas.width, canvas.height, 12);
     ctx.fillStyle = "#f4eef2";
     ctx.fill();
 
-    // plate
     ctx.save();
     ctx.translate(160, 110);
     ctx.fillStyle = "#ffffff";
@@ -730,7 +690,6 @@
 
     ctx.restore();
 
-    // label strip
     ctx.fillStyle = "rgba(255,255,255,0.9)";
     roundRect(ctx, 14, 152, 292, 50, 10);
     ctx.fill();
@@ -865,6 +824,31 @@
       modal.appendChild(s);
       setTimeout(() => s.remove(), 1400);
     }
+  }
+
+  function popPageSparkle() {
+    try {
+      const host = document.body;
+      for (let i = 0; i < 18; i++) {
+        const d = document.createElement("div");
+        d.textContent = Math.random() > 0.5 ? "✦" : "★";
+        d.style.position = "fixed";
+        d.style.left = `${rand(35, 65)}%`;
+        d.style.top = `${rand(35, 60)}%`;
+        d.style.zIndex = 99999;
+        d.style.fontSize = `${rand(14, 22)}px`;
+        d.style.color = "rgba(255,255,255,0.95)";
+        d.style.textShadow = "0 4px 0 rgba(0,0,0,0.35)";
+        d.style.pointerEvents = "none";
+        d.style.transition = "transform 900ms ease, opacity 900ms ease";
+        host.appendChild(d);
+        requestAnimationFrame(() => {
+          d.style.opacity = "0";
+          d.style.transform = `translate(${rand(-40, 40)}px, ${rand(-80, -120)}px) scale(${rand(1.2, 1.8)})`;
+        });
+        setTimeout(() => d.remove(), 1000);
+      }
+    } catch (_) {}
   }
 
   function starText(n) {
@@ -1197,7 +1181,6 @@
         color: rgba(0,0,0,0.85);
       }
 
-      /* Cart UI */
       .cart-bar{
         display:flex;
         align-items:center;
@@ -1427,67 +1410,5 @@
     ctx.arcTo(x, y + h, x, y, rr);
     ctx.arcTo(x, y, x + w, y, rr);
     ctx.closePath();
-  }
-})();
-
-/* =====================================
-   GIFT REVEAL LOGIC
-===================================== */
-
-(function() {
-  const seeStarsBtn = document.querySelector("#seeStarsBtn"); // make sure id matches
-  const giftStage = document.getElementById("giftStage");
-  const giftBox = document.getElementById("giftBox");
-  const flowerReveal = document.getElementById("flowerReveal");
-
-  if (!giftBox) return;
-
-  let clickCount = 0;
-  const requiredClicks = 6;
-
-  // When she clicks "See the stars"
-  if (seeStarsBtn) {
-    seeStarsBtn.addEventListener("click", () => {
-      giftStage.classList.remove("hidden");
-      seeStarsBtn.style.display = "none";
-    });
-  }
-
-  giftBox.addEventListener("click", () => {
-    if (giftBox.classList.contains("open")) return;
-
-    clickCount++;
-
-    giftBox.classList.add("shake");
-    setTimeout(() => giftBox.classList.remove("shake"), 250);
-
-    if (clickCount >= requiredClicks) {
-      openGift();
-    }
-  });
-
-  function openGift() {
-    giftBox.classList.add("open");
-
-    setTimeout(() => {
-      flowerReveal.classList.remove("hidden");
-      createFlowers();
-    }, 600);
-  }
-
-  function createFlowers() {
-    flowerReveal.innerHTML = "";
-
-    for (let i = 0; i < 5; i++) {
-      const flower = document.createElement("div");
-      flower.className = "flower";
-
-      flower.innerHTML = `
-        <div class="flower-head"></div>
-        <div class="flower-stem"></div>
-      `;
-
-      flowerReveal.appendChild(flower);
-    }
   }
 })();

@@ -1,4 +1,3 @@
-# ask/views.py
 from django.shortcuts import render
 
 def home(request):
@@ -9,3 +8,6 @@ def yes(request):
 
 def no(request):
     return render(request, "ask/no.html")
+
+def gift(request):
+    return render(request, "ask/gift.html")

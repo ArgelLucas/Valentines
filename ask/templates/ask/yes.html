@@ -269,25 +269,16 @@
       backface-visibility: hidden;
     }
 
-    .page-flip.show{
-      opacity: 1;
-    }
+    .page-flip.show{ opacity: 1; }
+    .page-flip.flip-next{ transform: rotateY(-180deg); }
 
-    /* flip forward (Next): rotate towards left */
-    .page-flip.flip-next{
-      transform: rotateY(-180deg);
-    }
-
-    /* flip back (Prev): we position overlay on left and rotate other way */
     .page-flip.left{
       left: 18px;
       right: calc(50% + 7px);
       transform-origin: right center;
       box-shadow: 10px 0 18px rgba(0,0,0,.15);
     }
-    .page-flip.flip-prev{
-      transform: rotateY(180deg);
-    }
+    .page-flip.flip-prev{ transform: rotateY(180deg); }
 
     /* Quest toast */
     .quest-toast{
@@ -319,7 +310,7 @@
     @media (max-width: 720px){
       .mc-pages{ grid-template-columns: 1fr; }
       .mc-binding{ display:none; }
-      .page-flip{ display:none; } /* keep simple on small screens */
+      .page-flip{ display:none; }
       .mc-lines{ padding-bottom: 104px; }
     }
 
@@ -330,6 +321,17 @@
       .mc-btn{ padding: 9px 12px; min-width: 108px; }
       .mc-lines{ padding-bottom: 110px; }
     }
+
+    /* ============================================================
+       ✅ HIDE BOOK & QUILL WHEN GIFT SCENE STARTS
+       ============================================================ */
+    body.gift-scene .mc-book-wrap,
+    body.gift-scene .mc-book,
+    body.gift-scene .book-wrap,
+    body.gift-scene .book{
+      display: none !important;
+    }
+    body.gift-scene{ overflow: hidden; }
   </style>
 </head>
 
@@ -402,6 +404,13 @@
   <script src="{% static 'ask/js/meal.js' %}"></script>
 
   <script>
+    // ✅ When meal.js triggers the gift scene, hide the book UI
+    window.addEventListener("romanticNightGift", () => {
+      document.body.classList.add("gift-scene");
+    });
+  </script>
+
+  <script>
     (function(){
       const storyBox = document.getElementById("storyBox");
 
@@ -449,7 +458,7 @@
         ].join("\n"),
         3: [
           "So here’s the quest:",
-          "", 
+          "",
           "Will you be my Valentine?",
           "",
           "If yes… then you get to pick our meal,",
@@ -534,9 +543,7 @@
         pageTitleLeft.textContent = `Page ${page} of 3`;
         pageHint.textContent = hints[page];
 
-        // right page label stays "blank", but we can show what's next
         pageTitleRight.textContent = (page < 3) ? `Blank (Next: Page ${page+1})` : `Blank (End)`;
-
         nextBtn.textContent = (page === 3) ? "Next (Page 4)" : "Next";
 
         unlockLine.style.display = mealUnlocked ? "block" : "none";
@@ -544,7 +551,6 @@
       }
 
       function doFlip(direction, after){
-        // no flip on mobile single-page layout (pageFlip hidden)
         const flipVisible = getComputedStyle(pageFlip).display !== "none";
         if (!flipVisible) { after(); return; }
 
@@ -554,17 +560,14 @@
           pageFlip.classList.add("left");
         }
 
-        // force reflow
         void pageFlip.offsetWidth;
 
         pageFlip.classList.add("show");
 
-        // start animation next frame
         requestAnimationFrame(() => {
           pageFlip.classList.add(direction === "next" ? "flip-next" : "flip-prev");
         });
 
-        // complete
         setTimeout(() => {
           pageFlip.classList.remove("show","flip-next","flip-prev","left");
           after();
@@ -575,14 +578,12 @@
         stopTyping();
         page = p;
 
-        // sign button only on page 3 after typing finishes
         signBtn.style.display = "none";
 
         typeStory(storyPages[page]);
         updateButtons();
       }
 
-      // Controls
       prevBtn.addEventListener("click", () => {
         if (isTyping || page <= 1) return;
         doFlip("prev", () => loadPage(page - 1));
@@ -591,13 +592,11 @@
       nextBtn.addEventListener("click", () => {
         if (isTyping) return;
 
-        // normal flip between 1->2->3
         if (page < 3){
           doFlip("next", () => loadPage(page + 1));
           return;
         }
 
-        // page 3 "next page 4" logic
         if (!isSigned){
           showToast("Sign it first so it’s official 💗");
           return;
@@ -645,7 +644,6 @@
         showToast("Story restarted");
       });
 
-      // init
       updateButtons();
       loadPage(1);
     })();
