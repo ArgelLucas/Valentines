@@ -7,14 +7,41 @@
    - Modal body scrolls (footer pinned)
    - Better contrast (confirm text readable)
    - Food order uses "order" then A->Z
+   - iPad FIX: Use pointerup (bindTap) instead of click for Next/Back/Overlay/Gift buttons
+   - iPad FIX: Use 100svh in modal max-height + touch-action manipulation
    - FIXED: Final button triggers Gift Scene:
        -> closes modal cleanly (removes ESC listener)
-       -> hides Book & Quill via startGiftScene
-       -> switches canvas to romantic gift mode via romanticNightOn
+       -> switches canvas to romantic gift mode via romanticNightGift event
    ============================================================
 */
 
 (() => {
+  // -----------------------------
+  // 0) iPad/iOS TAP FIX
+  // -----------------------------
+  function bindTap(el, fn, opts = {}) {
+    if (!el) return;
+
+    let locked = false;
+    const handler = (e) => {
+      // iOS Safari/Chrome: prevent tap/scroll confusion
+      if (e && typeof e.preventDefault === "function") e.preventDefault();
+      if (e && typeof e.stopPropagation === "function") e.stopPropagation();
+      if (locked) return;
+      locked = true;
+      try {
+        fn(e);
+      } finally {
+        setTimeout(() => (locked = false), 60);
+      }
+    };
+
+    // Best path for iPad
+    el.addEventListener("pointerup", handler, { passive: false, ...opts });
+    // Fallback
+    el.addEventListener("click", handler, { passive: false, ...opts });
+  }
+
   // -----------------------------
   // 1) DATA
   // -----------------------------
@@ -136,7 +163,6 @@
     stars: 5
   };
 
-  // keep a reference so we can remove ESC listener even if we close from “gift” button
   let escHandler = null;
 
   document.addEventListener("DOMContentLoaded", () => {
@@ -191,15 +217,19 @@
     document.body.classList.add("meal-lock");
     injectStyles();
 
-    modal.querySelector(".meal-overlay").addEventListener("click", closeMealModalClean);
+    const overlay = modal.querySelector(".meal-overlay");
+    const backBtn = modal.querySelector("#mealBack");
+    const nextBtn = modal.querySelector("#mealNext");
+
+    // ✅ iPad-safe bindings
+    bindTap(overlay, closeMealModalClean);
+    bindTap(backBtn, onBack);
+    bindTap(nextBtn, onNext);
 
     escHandler = (e) => {
       if (e.key === "Escape") closeMealModalClean();
     };
     window.addEventListener("keydown", escHandler);
-
-    modal.querySelector("#mealBack").addEventListener("click", onBack);
-    modal.querySelector("#mealNext").addEventListener("click", onNext);
 
     state.step = 1;
     state.restaurantKey = null;
@@ -316,20 +346,19 @@
     const closeBtn = document.getElementById("closeMeal");
 
     if (giftBtn) {
-      giftBtn.addEventListener("click", () => {
-        // close modal cleanly
-        closeMealModalClean();
-
-        // tell app.js to switch to romantic gift background
-        window.dispatchEvent(new CustomEvent("romanticNightGift"));
-
-        // tiny sparkle feedback
-        popPageSparkle();
-      }, { once: true });
+      bindTap(
+        giftBtn,
+        () => {
+          closeMealModalClean();
+          window.dispatchEvent(new CustomEvent("romanticNightGift"));
+          popPageSparkle();
+        },
+        { once: true }
+      );
     }
 
     if (closeBtn) {
-      closeBtn.addEventListener("click", closeMealModalClean, { once: true });
+      bindTap(closeBtn, closeMealModalClean, { once: true });
     }
   }
 
@@ -876,6 +905,9 @@
         box-sizing: border-box;
       }
 
+      /* iPad tap polish */
+      #mealModal, #mealModal * { -webkit-tap-highlight-color: transparent; }
+
       .meal-overlay{
         position: fixed;
         inset: 0;
@@ -906,7 +938,9 @@
         margin: 18px auto;
         width: min(920px, 96vw);
 
-        max-height: calc(100vh - 36px);
+        /* ✅ iPad viewport fix */
+        max-height: calc(100svh - 36px);
+
         display: flex;
         flex-direction: column;
 
@@ -1030,6 +1064,9 @@
         transition: transform .06s ease, filter .12s ease;
         color: #111;
         white-space: nowrap;
+
+        /* ✅ iPad: reduce gesture delay */
+        touch-action: manipulation;
       }
       .meal-btn:active{ transform: translateY(1px); }
       .meal-btn:disabled{ opacity: .55; cursor: not-allowed; }
